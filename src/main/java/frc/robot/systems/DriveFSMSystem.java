@@ -1,9 +1,19 @@
 package frc.robot.systems;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
+import frc.robot.CommandSwerveDrivetrain;
+
 // WPILib Imports
 
 // Robot Imports
 import frc.robot.TeleopInput;
+import frc.robot.generated.TunerConstants;
+import frc.robot.Constants.DriveConstants;
 
 public class DriveFSMSystem {
 	/* ======================== Constants ======================== */
@@ -12,8 +22,15 @@ public class DriveFSMSystem {
 		TELEOP_STATE
 	}
 
+	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS;
+		// kSpeedAt12Volts desired top speed
+	private static final AngularVelocity MAX_ANGULAR_RATE = DriveConstants.MAX_ANGULAR_VELO_RPS;
+		//3/4 rps angle velo
+
 	/* ======================== Private variables ======================== */
 	private DriveFSMState currentState;
+
+	private CommandSwerveDrivetrain drivetrain;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -26,6 +43,7 @@ public class DriveFSMSystem {
 	 */
 	public DriveFSMSystem() {
 		// Perform hardware init
+		drivetrain = TunerConstants.createDrivetrain();
 
 		// Reset state machine
 		reset();
@@ -104,5 +122,22 @@ public class DriveFSMSystem {
 		if (input == null) {
 			return;
 		}
+
+		double xSpeed = MathUtil.applyDeadband(
+			input.getDriveLeftJoystickY(),
+			DriveConstants.TRANSLATION_DEADBAND
+		) * MAX_SPEED.in(MetersPerSecond);
+
+		double ySpeed = MathUtil.applyDeadband(
+			input.getDriveLeftJoystickX(),
+			DriveConstants.TRANSLATION_DEADBAND
+		) * MAX_SPEED.in(MetersPerSecond);
+
+		double thetaSpeed = MathUtil.applyDeadband(
+			input.getDriveRightJoystickX(),
+			DriveConstants.ROTATION_DEADBAND
+		) * MAX_ANGULAR_RATE.in(RadiansPerSecond);
+
+		
 	}
 }

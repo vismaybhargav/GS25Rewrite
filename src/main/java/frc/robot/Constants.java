@@ -3,8 +3,10 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
@@ -13,6 +15,10 @@ import edu.wpi.first.units.measure.Voltage;
 public class Constants {
 	public static final class DriveConstants {
 		public static final double SYS_ID_VOLT_DAMP = 6;
+
+		public static final double TRANSLATION_DEADBAND = 0.5;
+		public static final double ROTATION_DEADBAND = 0.5;
+		public static final AngularVelocity MAX_ANGULAR_VELO_RPS = RotationsPerSecond.of(0.75);
 	}
 
 	public static final class ModuleConstants {
