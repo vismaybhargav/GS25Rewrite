@@ -1,11 +1,14 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Milliseconds;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.Voltage;
 
 public class Constants {
 	public static final class DriveConstants {
@@ -43,6 +46,18 @@ public class Constants {
 		public static final Distance ROBOT_LENGTH = Inches.of(35.5);
 		public static final Distance ROBOT_WIDTH = Inches.of(35.5);
 		public static final double WHEEL_COF = 1.2;
+
+		public static final double STEER_P = 70;
+		public static final double STEER_I = 0;
+		public static final double STEER_D = 4.5;
+		public static final double STEER_S = 0;
+		public static final double STEER_V = 1.91;
+		public static final double STEER_A = 0;
+
+		public static final double STEER_MOTOR_GEAR_RATIO = 16.0;
+		public static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.1);
+		public static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.51);
+		public static final MomentOfInertia STEER_INERTIA = KilogramSquareMeters.of(0.05);
 	}
 
 	public static final class VisionConstants {
