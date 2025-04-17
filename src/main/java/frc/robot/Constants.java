@@ -19,6 +19,7 @@ import edu.wpi.first.units.measure.Voltage;
 
 public class Constants {
 	public static final class DriveConstants {
+		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
 		public static final double TRANSLATION_DEADBAND = 0.5;
@@ -50,6 +51,10 @@ public class Constants {
 		public static final double ROTATION_P = 7;
 		public static final double ROTATION_I = 0;
 		public static final double ROTATION_D = 0;
+
+		public static final double POSE_TOLERANCE = 0.5;
+		public static final double TIME_STEP = 0.02;
+		public static final double MIN_VELOCITY_VEC = 0.1;
 	}
 
 	public static final class SimConstants {

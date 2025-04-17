@@ -36,6 +36,7 @@ import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.TeleopInput;
 import frc.robot.generated.LocalADStarAK;
 import frc.robot.generated.TunerConstants;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 
 public class DriveFSMSystem {
@@ -98,7 +99,7 @@ public class DriveFSMSystem {
 
 	private PathConstraints pathConstraints = new PathConstraints(
 		MAX_SPEED.in(MetersPerSecond),
-		3,
+		2 + 1,
 		MAX_ANGULAR_RATE.in(RadiansPerSecond),
 		Math.pow(MAX_ANGULAR_RATE.in(RadiansPerSecond), 2)
 	);
@@ -120,7 +121,8 @@ public class DriveFSMSystem {
 				drivetrain.getKinematics(),
 				getPose().getRotation(),
 				getModulePositions(),
-				getPose());
+				getPose()
+		);
 
 		Pathfinding.setPathfinder(new LocalADStarAK());
 
@@ -178,7 +180,7 @@ public class DriveFSMSystem {
 				handleTeleopState(input);
 				break;
 			case PATHFIND:
-				handlePathfindState(input);
+				handlePathfindState();
 				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
@@ -265,9 +267,8 @@ public class DriveFSMSystem {
 
 	/**
 	 * Handles the PATHFIND_STATE, when the robot is pathfinding to it's target pose.
-	 * @param input drive controller input
 	 */
-	public void handlePathfindState(TeleopInput input) {
+	public void handlePathfindState() {
 		if (finish) {
 			return;
 		}
@@ -332,11 +333,11 @@ public class DriveFSMSystem {
 				// to the next loop
 				// This can prevent an issue where the robot will remain stationary if new paths
 				// come in every loop
-				if (timeOffset <= 0.02
+				if (timeOffset <= AutoConstants.TIME_STEP
 						&& Math.hypot(
 							currSpeeds.vxMetersPerSecond,
-							currSpeeds.vyMetersPerSecond) < 0.1) {
-					timeOffset = 0.02;
+							currSpeeds.vyMetersPerSecond) < AutoConstants.MIN_VELOCITY_VEC) {
+					timeOffset = AutoConstants.TIME_STEP;
 				}
 
 				PathPlannerLogging.logActivePath(currentPath);
@@ -373,8 +374,12 @@ public class DriveFSMSystem {
 		Pose2d currentPose = getPose();
 		drivetrain.getPPHolonomicDriveController().reset(currentPose, getChassisSpeeds());
 
-		if (currentPose.getTranslation().getDistance(targetPose.getTranslation()) < 0.5) {
-			var ff = DriveFeedforwards.zeros(4);
+		if (currentPose
+			.getTranslation()
+			.getDistance(
+				targetPose.getTranslation()
+			) < AutoConstants.POSE_TOLERANCE) {
+			var ff = DriveFeedforwards.zeros(DriveConstants.NUM_MODULES);
 
 			drivetrain.setControl(
 				pathApplyRobotSpeeds
