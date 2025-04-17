@@ -3,6 +3,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -15,10 +16,12 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.DriveFeedforwards;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -126,6 +129,31 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	/* The SysId routine to test */
 	private SysIdRoutine sysIdRoutineToApply = sysIdRoutineTranslation;
 
+
+	private PPHolonomicDriveController ppHolonomicDriveController = new PPHolonomicDriveController(
+					// PID constants for translation
+					new PIDConstants(
+						AutoConstants.TRANSLATION_P,
+						AutoConstants.TRANSLATION_I,
+						AutoConstants.TRANSLATION_D
+					),
+					// PID constants for rotation
+					new PIDConstants(
+						AutoConstants.ROTATION_P,
+						AutoConstants.ROTATION_I,
+						AutoConstants.ROTATION_D
+					)
+				);
+
+	private BiConsumer<ChassisSpeeds, DriveFeedforwards> ppPathfindConsumer =
+		(speeds, feedforwards) -> {
+			pathApplyRobotSpeeds
+				.withSpeeds(speeds)
+				.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+				.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons());
+		};
+	private RobotConfig config = null;
+
 	/**
 	 * Constructs a CTRE SwerveDrivetrain using the specified constants.
 	 * <p>
@@ -214,31 +242,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
 	private void configureAutoBuilder() {
 		try {
-			var config = RobotConfig.fromGUISettings();
+			config = RobotConfig.fromGUISettings();
 			AutoBuilder.configure(
 				() -> getState().Pose,   // Supplier of current robot pose
 				this::resetPose,         // Consumer for seeding pose against auto
 				() -> getState().Speeds, // Supplier of current robot speeds
 				// Consumer of ChassisSpeeds and feedforwards to drive the robot
-				(speeds, feedforwards) -> setControl(
-					pathApplyRobotSpeeds.withSpeeds(speeds)
-						.withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-						.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
-				),
-				new PPHolonomicDriveController(
-					// PID constants for translation
-					new PIDConstants(
-						AutoConstants.TRANSLATION_P,
-						AutoConstants.TRANSLATION_I,
-						AutoConstants.TRANSLATION_D
-					),
-					// PID constants for rotation
-					new PIDConstants(
-						AutoConstants.ROTATION_P,
-						AutoConstants.ROTATION_I,
-						AutoConstants.ROTATION_D
-					)
-				),
+				ppPathfindConsumer,
+				ppHolonomicDriveController,
 				config,
 				// Assume the path needs to be flipped for Red vs Blue, this is normally the case
 				() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
@@ -358,5 +369,29 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 			visionRobotPoseMeters,
 			Utils.fpgaToCurrentTime(timestampSeconds),
 			visionMeasurementStdDevs);
+	}
+
+	/**
+	 * Get the pathplanner holonomic drive controller.
+	 * @return the drive controller
+	 */
+	public PPHolonomicDriveController getPPHolonomicDriveController() {
+		return ppHolonomicDriveController;
+	}
+
+	/**
+	 * Get the biconsumer to apply the speeds to.
+	 * @return the bi consumer
+	 */
+	public BiConsumer<ChassisSpeeds, DriveFeedforwards> getPpPathfindConsumer() {
+		return ppPathfindConsumer;
+	}
+
+	/**
+	 * Get the PP config.
+	 * @return the pp config
+	 */
+	public RobotConfig getPPConfig() {
+		return config;
 	}
 }

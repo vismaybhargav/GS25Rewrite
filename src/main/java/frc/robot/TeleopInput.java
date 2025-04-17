@@ -66,6 +66,14 @@ public class TeleopInput {
 		return driveController.getRightY();
 	}
 
+	/**
+	 * is the pathfinding button pressed.
+	 * @return the pathfinding button pressed
+	 */
+	public boolean isPathfindButtonPressed() {
+		return driveController.getXButton();
+	}
+
 	/* ======================== Private methods ======================== */
 
 }
