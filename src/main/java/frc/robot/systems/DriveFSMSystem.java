@@ -237,6 +237,9 @@ public class DriveFSMSystem {
 			return;
 		}
 
+		finish = true;  // Resets the pathfinding, so that we
+						// re-initialize when going into the pathfinding state.
+
 		double xSpeed = MathUtil.applyDeadband(
 			-input.getDriveLeftJoystickY(),
 			DriveConstants.TRANSLATION_DEADBAND
