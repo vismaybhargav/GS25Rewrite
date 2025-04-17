@@ -13,6 +13,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.DriveFeedforwards;
+import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -126,9 +127,16 @@ public class DriveFSMSystem {
 
 		Pathfinding.setPathfinder(new LocalADStarAK());
 
-
 		PathPlannerLogging.setLogActivePathCallback((path) -> {
 			Logger.recordOutput("PathPlanner/Trajectory", path.toArray(new Pose2d[path.size()]));
+		});
+
+		PathPlannerLogging.setLogCurrentPoseCallback((currentPose) -> {
+			Logger.recordOutput("PathPlanner/Current Pose", currentPose);
+		});
+
+		PathPlannerLogging.setLogTargetPoseCallback((targPose) -> {
+			Logger.recordOutput("PathPlanner/Target Pose", targPose);
 		});
 
 		// Reset state machine
@@ -276,6 +284,9 @@ public class DriveFSMSystem {
 		Pose2d currPose = getPose();
 		ChassisSpeeds currSpeeds = getChassisSpeeds();
 
+		PathPlannerLogging.logCurrentPose(currPose);
+		PPLibTelemetry.setCurrentPose(currPose);
+
 		// Skip updates if we are very close to the goal
 		boolean skipUpdates =
 			currentTrajectory != null
@@ -341,6 +352,7 @@ public class DriveFSMSystem {
 				}
 
 				PathPlannerLogging.logActivePath(currentPath);
+				PPLibTelemetry.setCurrentPath(currentPath);
 			}
 
 			timer.reset();
@@ -353,6 +365,22 @@ public class DriveFSMSystem {
 			ChassisSpeeds targSpeeds =
 				drivetrain.getPPHolonomicDriveController()
 					.calculateRobotRelativeSpeeds(currPose, targetState);
+
+			double currentVel =
+				Math.hypot(currSpeeds.vxMetersPerSecond, currSpeeds.vyMetersPerSecond);
+
+			PPLibTelemetry.setCurrentPose(currPose);
+			PathPlannerLogging.logCurrentPose(currPose);
+
+			PPLibTelemetry.setTargetPose(targetState.pose);
+			PathPlannerLogging.logTargetPose(targetState.pose);
+
+			PPLibTelemetry.setVelocities(
+				currentVel,
+				targetState.linearVelocity,
+				currSpeeds.omegaRadiansPerSecond,
+				targSpeeds.omegaRadiansPerSecond
+			);
 
 			drivetrain.setControl(
 				pathApplyRobotSpeeds
