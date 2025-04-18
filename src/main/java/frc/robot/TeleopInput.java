@@ -66,12 +66,31 @@ public class TeleopInput {
 		return driveController.getRightY();
 	}
 
+	/* ------------------------ Buttons ------------------------ */
 	/**
 	 * is the pathfinding button pressed.
 	 * @return the pathfinding button pressed
 	 */
 	public boolean isPathfindButtonPressed() {
 		return driveController.getXButton();
+	}
+
+	/**
+	 * Checks if the button to shift the reef selection
+	 * counter clockwise is pressed.
+	 * @return true if the button is pressed, false otherwise
+	 */
+	public boolean isCCWReefSelectionChangeButtonPressed() {
+		return driveController.getLeftBumperButton();
+	}
+
+	/**
+	 * Checks if the button to shift the reef selection
+	 * clockwise is pressed.
+	 * @return true if the button is pressed, false otherwise
+	 */
+	public boolean isCWReefSelectionChangeButtonPressed() {
+		return driveController.getRightBumperButton();
 	}
 
 	/* ======================== Private methods ======================== */
