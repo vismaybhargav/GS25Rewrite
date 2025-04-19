@@ -1,7 +1,6 @@
 package frc.robot.vision;
 
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import org.photonvision.PhotonCamera;
 
@@ -32,18 +31,6 @@ public class VisionIOPhotonVision implements VisionIO {
 		List<PoseObservation> poseObservations = new LinkedList<>();
 
 		for (var result : camera.getAllUnreadResults()) {
-			if (result.hasTargets()) {
-				inputs.setLatestTargetObservation(
-					new TargetObservation(
-						Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-						Rotation2d.fromDegrees(result.getBestTarget().getPitch()))
-				);
-			} else {
-				inputs.setLatestTargetObservation(
-					new TargetObservation(new Rotation2d(), new Rotation2d())
-				);
-			}
-
 			if (result.multitagResult.isPresent()) {
 				var multiTagResult = result.multitagResult.get();
 

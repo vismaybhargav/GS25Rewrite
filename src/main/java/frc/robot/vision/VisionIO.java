@@ -8,18 +8,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 public interface VisionIO {
 	@AutoLog
 	class VisionIOInputs {
-		private TargetObservation latestTargetObservation =
-				new TargetObservation(new Rotation2d(), new Rotation2d());
 		private PoseObservation[] latestPoseObservations = new PoseObservation[0];
 		private int[] tagIDs = new int[0];
-
-		/**
-		 * Gets the most recent tag observation.
-		 * @return the most recent tag observation
-		 */
-		public TargetObservation getLatestTargetObservation() {
-			return latestTargetObservation;
-		}
 
 		/**
 		 * Gets the most recent pose observations.
@@ -35,14 +25,6 @@ public interface VisionIO {
 		 */
 		public int[] getTagIDs() {
 			return tagIDs;
-		}
-
-		/**
-		 * Set latest target observation.
-		 * @param recentTargetObservation the latest target observation
-		 */
-		public void setLatestTargetObservation(TargetObservation recentTargetObservation) {
-			latestTargetObservation = recentTargetObservation;
 		}
 
 		/**
