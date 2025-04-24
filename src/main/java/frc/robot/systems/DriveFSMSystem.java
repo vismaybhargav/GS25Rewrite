@@ -7,6 +7,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -15,6 +16,7 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
+import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
@@ -28,8 +30,10 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
+import frc.robot.Robot;
 
 // WPILib Imports
 
@@ -105,6 +109,8 @@ public class DriveFSMSystem {
 		Math.pow(MAX_ANGULAR_RATE.in(RadiansPerSecond), 2)
 	);
 
+	private double lastSimTime;
+
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 
@@ -138,6 +144,10 @@ public class DriveFSMSystem {
 		PathPlannerLogging.setLogTargetPoseCallback((targPose) -> {
 			Logger.recordOutput("PathPlanner/Target Pose", targPose);
 		});
+
+		if (Robot.isSimulation()) {
+			lastSimTime = Utils.getCurrentTimeSeconds();
+		}
 
 		// Reset state machine
 		reset();
@@ -502,5 +512,14 @@ public class DriveFSMSystem {
 				visionPoseMeters,
 				timestampSeconds,
 				visionStdDevs);
+	}
+
+	public void updateSimulation() {
+		double currentTime = Utils.getCurrentTimeSeconds();
+		double deltaTime = currentTime - lastSimTime;
+		lastSimTime = currentTime;
+
+		drivetrain.updateSimState(deltaTime, RobotController.getBatteryVoltage());
+
 	}
 }

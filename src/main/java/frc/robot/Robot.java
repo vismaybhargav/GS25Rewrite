@@ -132,7 +132,9 @@ public class Robot extends LoggedRobot {
 	}
 
 	@Override
-	public void simulationPeriodic() { }
+	public void simulationPeriodic() {
+		driveSystem.updateSimulation();
+	}
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
