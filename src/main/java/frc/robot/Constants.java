@@ -80,8 +80,8 @@ public class Constants {
 		public static final AprilTagFieldLayout TAG_LAYOUT = AprilTagFieldLayout
 				.loadField(AprilTagFields.k2025ReefscapeWelded);
 
-		public static final String REEF_CAMERA_NAME = "Reef Camera";
-		public static final String STATION_CAMERA_NAME = "Station Camera";
+		public static final String REEF_CAMERA_NAME = "Reef_Camera";
+		public static final String STATION_CAMERA_NAME = "Source_Camera";
 
 		public static final Transform3d ROBOT_TO_REEF_CAM =
 			new Transform3d(Units.inchesToMeters(7.129),
