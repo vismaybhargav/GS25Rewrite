@@ -1,50 +1,64 @@
+// Copyright 2021-2025 FRC 6328
+// http://github.com/Mechanical-Advantage
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// version 3 as published by the Free Software Foundation or
+// available in the root directory of this project.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
 package frc.robot.vision;
+
+import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
+
+import java.util.function.Supplier;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 
-import java.util.function.Supplier;
-
-import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
-
+/** IO implementation for physics sim using PhotonVision simulator. */
 public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
-	private static VisionSystemSim visionSystemSim;
+	private static VisionSystemSim visionSim;
 
 	private final Supplier<Pose2d> poseSupplier;
 	private final PhotonCameraSim cameraSim;
 
 	/**
-	 * Creates a new VisionIOPhotonVision object.
+	 * Creates a new VisionIOPhotonVisionSim.
 	 *
-	 * @param name name of the source
-	 * @param robotToCamera robot 2 cam transform
-	 * @param thePoseSupplier the pose supplier
-	 *
+	 * @param name         The name of the camera.
+	 * @param poseSupplier Supplier for the robot pose to use in simulation.
 	 */
 	public VisionIOPhotonVisionSim(
 			String name,
-			Transform3d robotToCamera,
-			Supplier<Pose2d> thePoseSupplier
-	) {
+            Transform3d robotToCamera,
+            Supplier<Pose2d> poseSupplier
+    ) {
 		super(name, robotToCamera);
-		poseSupplier = thePoseSupplier;
+		this.poseSupplier = poseSupplier;
 
-		if (visionSystemSim == null) {
-			visionSystemSim = new VisionSystemSim("main");
-			visionSystemSim.addAprilTags(TAG_LAYOUT);
+		// Initialize vision sim
+		if (visionSim == null) {
+			visionSim = new VisionSystemSim("main");
+			visionSim.addAprilTags(TAG_LAYOUT);
 		}
 
-		var cameraProps = new SimCameraProperties();
-		cameraSim = new PhotonCameraSim(getCamera(), cameraProps, TAG_LAYOUT);
-		visionSystemSim.addCamera(cameraSim, robotToCamera);
+		// Add sim camera
+		var cameraProperties = new SimCameraProperties();
+		cameraSim = new PhotonCameraSim(camera, cameraProperties, TAG_LAYOUT);
+		visionSim.addCamera(cameraSim, robotToCamera);
 	}
 
 	@Override
 	public void updateInputs(VisionIOInputs inputs) {
-		visionSystemSim.update(poseSupplier.get());
+		visionSim.update(poseSupplier.get());
 		super.updateInputs(inputs);
 	}
 }
