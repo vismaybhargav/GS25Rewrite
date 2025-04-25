@@ -57,7 +57,6 @@ public class DriveFSMSystem {
 	/* ======================== Private variables ======================== */
 	private DriveFSMState currentState;
 	private CommandSwerveDrivetrain drivetrain;
-	private SwerveDrivePoseEstimator poseEstimator;
 
 	private final SwerveRequest.FieldCentric drive
 		= new SwerveRequest.FieldCentric()
@@ -117,13 +116,6 @@ public class DriveFSMSystem {
 	public DriveFSMSystem() {
 		// Perform hardware init
 		drivetrain = TunerConstants.createDrivetrain();
-
-		poseEstimator = new SwerveDrivePoseEstimator(
-				drivetrain.getKinematics(),
-				getPose().getRotation(),
-				getModulePositions(),
-				getPose()
-		);
 
 		Pathfinding.setPathfinder(new LocalADStarAK());
 
@@ -498,7 +490,7 @@ public class DriveFSMSystem {
 			Pose2d visionPoseMeters,
 			double timestampSeconds,
 			Matrix<N3, N1> visionStdDevs) {
-		poseEstimator.addVisionMeasurement(
+		drivetrain.addVisionMeasurement(
 				visionPoseMeters,
 				timestampSeconds,
 				visionStdDevs);
