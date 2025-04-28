@@ -81,7 +81,7 @@ public class TeleopInput {
 	 * @return true if the button is pressed, false otherwise
 	 */
 	public boolean isCCWReefSelectionChangeButtonPressed() {
-		return driveController.getLeftBumperButton();
+		return driveController.getLeftBumperButtonPressed();
 	}
 
 	/**
@@ -90,7 +90,7 @@ public class TeleopInput {
 	 * @return true if the button is pressed, false otherwise
 	 */
 	public boolean isCWReefSelectionChangeButtonPressed() {
-		return driveController.getRightBumperButton();
+		return driveController.getRightBumperButtonPressed();
 	}
 
 	/* ======================== Private methods ======================== */

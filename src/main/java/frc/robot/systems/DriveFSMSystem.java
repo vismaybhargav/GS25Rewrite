@@ -43,6 +43,9 @@ import frc.robot.generated.LocalADStarAK;
 import frc.robot.generated.TunerConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.FieldHelper.BranchSide;
+import frc.robot.FieldHelper.ReefSide;
+import frc.robot.FieldHelper;
 
 public class DriveFSMSystem {
 	/* ======================== Constants ======================== */
@@ -93,7 +96,10 @@ public class DriveFSMSystem {
 	/* ======================== Pathfinding Stuffs ================== */
 	private final Timer timer = new Timer();
 	private double timeOffset = 0;
-	private Pose2d targetPose = new Pose2d();
+	private ReefSide currentReefSide = ReefSide.A;
+	private BranchSide currentBranchSide = BranchSide.RIGHT;
+	private Pose2d targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+	private ReefSide[] reefSides = ReefSide.values();
 	private Pose2d originalTargetPose = new Pose2d(
 		targetPose.getTranslation(), targetPose.getRotation()
 	);
@@ -193,6 +199,13 @@ public class DriveFSMSystem {
 	 */
 	public void update(TeleopInput input) {
 		Logger.recordOutput("Timer", timer.get());
+
+		if(input != null && input.isCCWReefSelectionChangeButtonPressed()) {
+			handleCCWReefSelect();
+		} else if (input != null && input.isCWReefSelectionChangeButtonPressed()) {
+			handleCWReefSelect();
+		}
+
 		switch (currentState) {
 			case TELEOP:
 				handleTeleopState(input);
@@ -222,6 +235,7 @@ public class DriveFSMSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private DriveFSMState nextState(TeleopInput input) {
+
 		if (input == null) {
 			return DriveFSMState.TELEOP;
 		}
@@ -450,6 +464,28 @@ public class DriveFSMSystem {
 		return false;
 	}
 
+	public void handleCCWReefSelect() {
+		if (currentBranchSide == BranchSide.LEFT) {
+			currentReefSide = reefSides[(currentReefSide.ordinal() - 1 + reefSides.length) % reefSides.length];
+			currentBranchSide = BranchSide.RIGHT;
+		} else {
+			currentBranchSide = BranchSide.LEFT;
+		}
+
+		targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+	}
+
+	public void handleCWReefSelect() {
+		if (currentBranchSide == BranchSide.RIGHT) {
+			currentReefSide = reefSides[(currentReefSide.ordinal() + 1) % reefSides.length];
+			currentBranchSide = BranchSide.LEFT;
+		} else {
+			currentBranchSide = BranchSide.RIGHT;
+		}
+
+		targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+	}
+
 	/**
 	 * Get the pose of the drivetrain.
 	 * @return pose of the drivetrain
@@ -493,6 +529,11 @@ public class DriveFSMSystem {
 	@AutoLogOutput(key = "Swerve/Positions")
 	public SwerveModulePosition[] getModulePositions() {
 		return drivetrain.getState().ModulePositions;
+	}
+
+	@AutoLogOutput(key = "ReefSelectorTarget")
+	public Pose2d getTargetPose() {
+		return targetPose;
 	}
 
 	/**

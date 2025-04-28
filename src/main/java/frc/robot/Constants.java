@@ -55,6 +55,9 @@ public class Constants {
 		public static final double POSE_TOLERANCE = 0.5;
 		public static final double TIME_STEP = 0.02;
 		public static final double MIN_VELOCITY_VEC = 0.1;
+
+		public static final Distance REEF_Y_LEFT_OFFSET = Inches.of(-10);
+    	public static final Distance REEF_Y_RIGHT_OFFSET = Inches.of(2.5);
 	}
 
 	public static final class SimConstants {
