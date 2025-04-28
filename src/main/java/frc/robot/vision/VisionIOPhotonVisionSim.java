@@ -21,6 +21,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 
 import java.util.function.Supplier;
 import org.photonvision.simulation.PhotonCameraSim;
@@ -29,7 +30,7 @@ import org.photonvision.simulation.VisionSystemSim;
 
 /** IO implementation for physics sim using PhotonVision simulator. */
 public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
-	private static VisionSystemSim visionSim;
+	private static VisionSystemSim visionSystemSim;
 	private final Supplier<Pose2d> poseSupplier;
 	private final PhotonCameraSim cameraSim;
 
@@ -89,14 +90,24 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 					480,
 					new Matrix<N3, N3>(N3.instance, N3.instance,
 							new double[] {
-									548.8107781815636, 0.0, 335.98845208944647, 0.0, 549.91022315822, 261.5076314193876,
+									548.8107781815636,
+									0.0,
+									335.98845208944647,
+									0.0,
+									549.91022315822,
+									261.5076314193876,
 									0.0, 0.0, 1.0
 							}),
 					new Matrix<N8, N1>(N8.instance, N1.instance,
 							new double[] {
-									0.046882076180144325, -0.08739491623632688, -7.369602850193537E-4,
-									9.49279422750342E-4, 0.015437967521711683, -0.0018478126980591776,
-									0.004435053264404992, -1.8178696218760975E-4
+									0.046882076180144325,
+									-0.08739491623632688,
+									-7.369602850193537E-4,
+									9.49279422750342E-4,
+									0.015437967521711683,
+									-0.0018478126980591776,
+									0.004435053264404992,
+									-1.8178696218760975E-4
 							}));
 		}
 
@@ -106,7 +117,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 
 	@Override
 	public void updateInputs(VisionIOInputs inputs) {
-		visionSim.update(poseSupplier.get());
+		visionSystemSim.update(poseSupplier.get());
 		super.updateInputs(inputs);
 	}
 }

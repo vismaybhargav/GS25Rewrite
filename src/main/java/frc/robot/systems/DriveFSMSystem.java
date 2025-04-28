@@ -578,6 +578,5 @@ public class DriveFSMSystem {
 		lastSimTime = currentTime;
 
 		drivetrain.updateSimState(deltaTime, RobotController.getBatteryVoltage());
-
 	}
 }

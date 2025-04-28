@@ -71,7 +71,7 @@ public class Robot extends LoggedRobot {
 		if (isReal()) {
 			vision = new Vision(
 				driveSystem::addVisionMeasurement,
-                new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+				new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 				new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM)
 			);
 		} else {
