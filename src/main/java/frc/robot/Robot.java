@@ -69,21 +69,33 @@ public class Robot extends LoggedRobot {
 		driveSystem = new DriveFSMSystem();
 
 		if (isReal()) {
-			vision = new Vision(
-				driveSystem::addVisionMeasurement,
-				new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-				new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM)
-			);
+			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+				vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+						new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+			} else {
+				vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+			}
 		} else {
-			vision = new Vision(
-				driveSystem::addVisionMeasurement,
-				new VisionIOPhotonPoseEstimatorSim(
-					REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose
-				),
-				new VisionIOPhotonPoseEstimatorSim(
-					STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose
-				)
-			);
+			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+				vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						new VisionIOPhotonPoseEstimatorSim(
+								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
+						new VisionIOPhotonPoseEstimatorSim(
+								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
+			} else {
+				vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						new VisionIOPhotonVisionSim(
+								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
+						new VisionIOPhotonVisionSim(
+								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
+			}
 		}
 	}
 
