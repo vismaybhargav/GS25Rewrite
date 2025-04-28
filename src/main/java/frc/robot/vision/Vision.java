@@ -13,7 +13,6 @@
 
 package frc.robot.vision;
 
-import static frc.robot.Constants.VisionConstants.*;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -25,20 +24,32 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.vision.VisionIO.PoseObservationType;
+
+import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_BASELINE;
+import static frc.robot.Constants.VisionConstants.CAMERA_STD_DEV_FACTORS;
+import static frc.robot.Constants.VisionConstants.LINEAR_STD_DEV_BASELINE;
+import static frc.robot.Constants.VisionConstants.MAX_AMBIGUITY;
+import static frc.robot.Constants.VisionConstants.MAX_Z_ERROR;
+import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
+
 import java.util.LinkedList;
 import java.util.List;
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
-	private final VisionConsumer consumer;
+	private final VisionConsumer visionConsumer;
 	private final VisionIO[] io;
 	private final VisionIOInputsAutoLogged[] inputs;
 	private final Alert[] disconnectedAlerts;
 
-	public Vision(VisionConsumer consumer, VisionIO... io) {
-		this.consumer = consumer;
-		this.io = io;
+	/**
+	 * Creates a new Vision subsystem.
+	 * @param consumer The consumer to accept vision observations.
+	 * @param iO The IO objects to use for the cameras.
+	 */
+	public Vision(VisionConsumer consumer, VisionIO... iO) {
+		this.visionConsumer = consumer;
+		this.io = iO;
 
 		// Initialize inputs
 		this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -50,7 +61,8 @@ public class Vision extends SubsystemBase {
 		this.disconnectedAlerts = new Alert[io.length];
 		for (int i = 0; i < inputs.length; i++) {
 			disconnectedAlerts[i] = new Alert(
-					"Vision camera " + Integer.toString(i) + " is disconnected.", AlertType.kWarning);
+					"Vision camera "
+					+ Integer.toString(i) + " is disconnected.", AlertType.kWarning);
 		}
 	}
 
@@ -59,6 +71,7 @@ public class Vision extends SubsystemBase {
 	 * with vision.
 	 *
 	 * @param cameraIndex The index of the camera to use.
+	 * @return the yaw of the target
 	 */
 	public Rotation2d getTargetX(int cameraIndex) {
 		return inputs[cameraIndex].latestTargetObservation.tx();
@@ -101,8 +114,10 @@ public class Vision extends SubsystemBase {
 				// Check whether to reject pose
 				boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
 						|| (observation.tagCount() == 1
-								&& observation.ambiguity() > MAX_AMBIGUITY) // Cannot be high ambiguity
-						|| Math.abs(observation.pose().getZ()) > MAX_Z_ERROR // Must have realistic Z coordinate
+								// Cannot be high ambiguity
+								&& observation.ambiguity() > MAX_AMBIGUITY)
+						// Must have realistic Z coordinate
+						|| Math.abs(observation.pose().getZ()) > MAX_Z_ERROR
 
 						// Must be within the field boundaries
 						|| observation.pose().getX() < 0.0
@@ -124,7 +139,8 @@ public class Vision extends SubsystemBase {
 				}
 
 				// Calculate standard deviations
-				double stdDevFactor = Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
+				double stdDevFactor =
+					Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
 				double linearStdDev = LINEAR_STD_DEV_BASELINE * stdDevFactor;
 				double angularStdDev = ANGULAR_STD_DEV_BASELINE * stdDevFactor;
 				if (cameraIndex < CAMERA_STD_DEV_FACTORS.length) {
@@ -133,7 +149,7 @@ public class Vision extends SubsystemBase {
 				}
 
 				// Send vision observation
-				consumer.accept(
+				visionConsumer.accept(
 						observation.pose().toPose2d(),
 						observation.timestamp(),
 						VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
@@ -162,7 +178,8 @@ public class Vision extends SubsystemBase {
 		Logger.recordOutput(
 				"Vision/Summary/TagPoses", allTagPoses.toArray(new Pose3d[allTagPoses.size()]));
 		Logger.recordOutput(
-				"Vision/Summary/RobotPoses", allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
+				"Vision/Summary/RobotPoses",
+				allRobotPoses.toArray(new Pose3d[allRobotPoses.size()]));
 		Logger.recordOutput(
 				"Vision/Summary/RobotPosesAccepted",
 				allRobotPosesAccepted.toArray(new Pose3d[allRobotPosesAccepted.size()]));
@@ -172,8 +189,14 @@ public class Vision extends SubsystemBase {
 	}
 
 	@FunctionalInterface
-	public static interface VisionConsumer {
-		public void accept(
+	public interface VisionConsumer {
+		/**
+		 * Accepts a vision observation.
+		 * @param visionRobotPoseMeters The robot pose in meters.
+		 * @param timestampSeconds The timestamp in seconds.
+		 * @param visionMeasurementStdDevs The standard deviations of the vision
+		 */
+		void accept(
 				Pose2d visionRobotPoseMeters,
 				double timestampSeconds,
 				Matrix<N3, N1> visionMeasurementStdDevs);
