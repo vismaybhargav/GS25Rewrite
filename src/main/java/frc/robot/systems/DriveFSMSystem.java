@@ -8,7 +8,6 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -30,7 +29,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.Robot;
@@ -103,7 +101,8 @@ public class DriveFSMSystem {
 	private double timeOffset = 0;
 	private ReefSide currentReefSide = ReefSide.A;
 	private BranchSide currentBranchSide = BranchSide.RIGHT;
-	private Pose2d targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+	private Pose2d targetPose =
+		FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
 	private ReefSide[] reefSides = ReefSide.values();
 	private Pose2d originalTargetPose = new Pose2d(
 		targetPose.getTranslation(), targetPose.getRotation()
@@ -566,17 +565,5 @@ public class DriveFSMSystem {
 				visionPoseMeters,
 				timestampSeconds,
 				visionStdDevs);
-	}
-
-
-	/**
-	 * Updates the simulation.
-	 */
-	public void updateSimulation() {
-		double currentTime = Utils.getCurrentTimeSeconds();
-		double deltaTime = currentTime - lastSimTime;
-		lastSimTime = currentTime;
-
-		drivetrain.updateSimState(deltaTime, RobotController.getBatteryVoltage());
 	}
 }
