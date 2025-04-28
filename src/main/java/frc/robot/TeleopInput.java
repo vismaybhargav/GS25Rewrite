@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.PS4Controller;
 // WPILib Imports
 import edu.wpi.first.wpilibj.XboxController;
 
@@ -16,7 +17,7 @@ public class TeleopInput {
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private XboxController driveController;
+	private PS4Controller driveController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -25,7 +26,7 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		driveController = new XboxController(DRIVE_CONTROLLER_PORT);
+		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -72,7 +73,7 @@ public class TeleopInput {
 	 * @return the pathfinding button pressed
 	 */
 	public boolean isPathfindButtonPressed() {
-		return driveController.getXButton();
+        return false;
 	}
 
 	/**

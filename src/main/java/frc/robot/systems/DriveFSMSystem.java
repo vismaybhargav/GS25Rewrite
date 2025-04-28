@@ -22,7 +22,6 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -66,7 +65,6 @@ public class DriveFSMSystem {
 	/* ======================== Private variables ======================== */
 	private DriveFSMState currentState;
 	private CommandSwerveDrivetrain drivetrain;
-	private SwerveDrivePoseEstimator poseEstimator;
 
 	private final SwerveRequest.FieldCentric drive
 		= new SwerveRequest.FieldCentric()
@@ -75,6 +73,7 @@ public class DriveFSMSystem {
 		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
 		* DriveConstants.ROTATION_DEADBAND) //4% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+
 	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle
 		= new SwerveRequest.FieldCentricFacingAngle()
 		.withDeadband(MAX_SPEED.in(MetersPerSecond)
@@ -82,6 +81,7 @@ public class DriveFSMSystem {
 		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
 		* DriveConstants.ROTATION_DEADBAND) //4% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+
 	private final SwerveRequest.RobotCentric driveRobotCentric
 		= new SwerveRequest.RobotCentric()
 		.withDeadband(MAX_SPEED.in(MetersPerSecond)
@@ -89,9 +89,12 @@ public class DriveFSMSystem {
 		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
 			* DriveConstants.ROTATION_DEADBAND) //4% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+
 	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+
 	private final SwerveRequest.ApplyFieldSpeeds pathApplyFieldSpeeds =
 		new SwerveRequest.ApplyFieldSpeeds();
+
 	private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
 		new SwerveRequest.ApplyRobotSpeeds();
 
@@ -131,13 +134,6 @@ public class DriveFSMSystem {
 	public DriveFSMSystem() {
 		// Perform hardware init
 		drivetrain = TunerConstants.createDrivetrain();
-
-		poseEstimator = new SwerveDrivePoseEstimator(
-				drivetrain.getKinematics(),
-				getPose().getRotation(),
-				getModulePositions(),
-				getPose()
-		);
 
 		Pathfinding.setPathfinder(new LocalADStarAK());
 
@@ -566,7 +562,7 @@ public class DriveFSMSystem {
 			Pose2d visionPoseMeters,
 			double timestampSeconds,
 			Matrix<N3, N1> visionStdDevs) {
-		poseEstimator.addVisionMeasurement(
+		drivetrain.addVisionMeasurement(
 				visionPoseMeters,
 				timestampSeconds,
 				visionStdDevs);

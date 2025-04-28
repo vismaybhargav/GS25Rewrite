@@ -22,6 +22,8 @@ import frc.robot.systems.DriveFSMSystem;
 
 // Local
 import frc.robot.vision.Vision;
+import frc.robot.vision.VisionIOPhotonPoseEstimator;
+import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
 import frc.robot.vision.VisionIOPhotonVision;
 import frc.robot.vision.VisionIOPhotonVisionSim;
 
@@ -69,16 +71,16 @@ public class Robot extends LoggedRobot {
 		if (isReal()) {
 			vision = new Vision(
 				driveSystem::addVisionMeasurement,
-				new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-				new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM)
+                new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+				new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM)
 			);
 		} else {
 			vision = new Vision(
 				driveSystem::addVisionMeasurement,
-				new VisionIOPhotonVisionSim(
+				new VisionIOPhotonPoseEstimatorSim(
 					REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose
 				),
-				new VisionIOPhotonVisionSim(
+				new VisionIOPhotonPoseEstimatorSim(
 					STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose
 				)
 			);

@@ -33,8 +33,6 @@ import org.ironmaple.simulation.motorsims.SimulatedBattery;
 import org.ironmaple.simulation.motorsims.SimulatedMotorController;
 
 /**
- *
- *
  * <h2>Injects Maple-Sim simulation data into a CTRE swerve drivetrain.</h2>
  *
  * <p>This class retrieves simulation data from Maple-Sim and injects it into the CTRE

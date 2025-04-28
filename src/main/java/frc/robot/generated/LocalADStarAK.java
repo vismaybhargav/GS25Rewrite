@@ -105,9 +105,9 @@ public class LocalADStarAK implements Pathfinder {
 	}
 
 	private static class ADStarIO implements LoggableInputs {
-		public LocalADStar adStar = new LocalADStar();
-		public boolean isNewPathAvailable = false;
-		public List<PathPoint> currentPathPoints = Collections.emptyList();
+		private LocalADStar adStar = new LocalADStar();
+		private boolean isNewPathAvailable = false;
+		private List<PathPoint> currentPathPoints = Collections.emptyList();
 
 		@Override
 		public void toLog(LogTable table) {
