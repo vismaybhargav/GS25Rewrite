@@ -2,6 +2,7 @@ package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Meters;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -43,6 +44,7 @@ import frc.robot.generated.LocalADStarAK;
 import frc.robot.generated.TunerConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.FieldHelper.BranchSide;
 import frc.robot.FieldHelper.ReefSide;
 import frc.robot.FieldHelper;
@@ -316,7 +318,7 @@ public class DriveFSMSystem {
 			currentTrajectory != null
 				&& currPose
 					.getTranslation()
-					.getDistance(currentTrajectory.getEndState().pose.getTranslation()) < 2.0;
+					.getDistance(currentTrajectory.getEndState().pose.getTranslation()) < VisionConstants.STOP_PATHFINDING_UPDATES.in(Meters);
 
 		if (!skipUpdates && Pathfinding.isNewPathAvailable()) {
 			currentPath = Pathfinding.getCurrentPath(pathConstraints, goalEndState);
@@ -465,6 +467,7 @@ public class DriveFSMSystem {
 	}
 
 	public void handleCCWReefSelect() {
+
 		if (currentBranchSide == BranchSide.LEFT) {
 			currentReefSide = reefSides[(currentReefSide.ordinal() - 1 + reefSides.length) % reefSides.length];
 			currentBranchSide = BranchSide.RIGHT;
@@ -473,6 +476,7 @@ public class DriveFSMSystem {
 		}
 
 		targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+		goalEndState = new GoalEndState(0, targetPose.getRotation());
 	}
 
 	public void handleCWReefSelect() {
@@ -484,6 +488,7 @@ public class DriveFSMSystem {
 		}
 
 		targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+		goalEndState = new GoalEndState(0, targetPose.getRotation());
 	}
 
 	/**

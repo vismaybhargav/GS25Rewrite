@@ -1,6 +1,7 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -97,6 +98,7 @@ public class Constants {
 
 		public static final double MAX_AMBIGUITY = 0.5;
 		public static final double MAX_Z_ERROR = 5.0; // meters
+		public static final Distance STOP_PATHFINDING_UPDATES = Meters.of(2);
 
 		public static final double LINEAR_STD_DEV_BASELINE = 0.02;
 		public static final double ANGULAR_STD_DEV_BASELINE = 0.06;
