@@ -8,7 +8,7 @@ import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.pathplanner.lib.config.RobotConfig;
+import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -30,7 +30,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.Robot;
@@ -53,8 +52,8 @@ public class DriveFSMSystem {
 	// FSM state definitions
 	public enum DriveFSMState {
 		TELEOP,
-		PRE_PATHFIND,
-		PATHFIND
+		PATHFIND,
+		FINAL_ALIGN
 	}
 
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS;
@@ -103,7 +102,8 @@ public class DriveFSMSystem {
 	private double timeOffset = 0;
 	private ReefSide currentReefSide = ReefSide.A;
 	private BranchSide currentBranchSide = BranchSide.RIGHT;
-	private Pose2d targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+	private Pose2d targetPose =
+		FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
 	private ReefSide[] reefSides = ReefSide.values();
 	private Pose2d originalTargetPose = new Pose2d(
 		targetPose.getTranslation(), targetPose.getRotation()
@@ -120,7 +120,11 @@ public class DriveFSMSystem {
 		Math.pow(MAX_ANGULAR_RATE.in(RadiansPerSecond), 2)
 	);
 
-	private double lastSimTime;
+	private PhoenixPIDController xController, yController, thetaController;
+
+	// TODO: Use the same variable for both of these
+	private Pose2d targetAlignmentPose = 
+		FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -211,6 +215,9 @@ public class DriveFSMSystem {
 			case PATHFIND:
 				handlePathfindState();
 				break;
+			case FINAL_ALIGN:
+				handleFinalAlignState();
+				break;
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
@@ -251,6 +258,12 @@ public class DriveFSMSystem {
 			case PATHFIND:
 				if (input.isPathfindButtonPressed()) {
 					return DriveFSMState.PATHFIND;
+				} else {
+					return DriveFSMState.TELEOP;
+				}
+			case FINAL_ALIGN:
+				if (input.isPathfindButtonPressed()) {
+					return DriveFSMState.FINAL_ALIGN;
 				} else {
 					return DriveFSMState.TELEOP;
 				}
@@ -415,6 +428,16 @@ public class DriveFSMSystem {
 	}
 
 	/**
+	 * Handles the FINAL_ALIGN_STATE, when the robot is aligning to a target.
+	 */
+	public void handleFinalAlignState() {
+	}
+
+	public void initializeFinalAlignment() {
+		var currPose = getPose();
+	}
+
+	/**
 	 * Does all the setup before pathfinding starts.
 	 */
 	public void initalizePathfinding() {
@@ -566,18 +589,5 @@ public class DriveFSMSystem {
 				visionPoseMeters,
 				timestampSeconds,
 				visionStdDevs);
-	}
-
-
-	/**
-	 * Updates the simulation.
-	 */
-	public void updateSimulation() {
-		double currentTime = Utils.getCurrentTimeSeconds();
-		double deltaTime = currentTime - lastSimTime;
-		lastSimTime = currentTime;
-
-		drivetrain.updateSimState(deltaTime, RobotController.getBatteryVoltage());
-
 	}
 }
