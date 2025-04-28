@@ -202,7 +202,7 @@ public class DriveFSMSystem {
 	public void update(TeleopInput input) {
 		Logger.recordOutput("Timer", timer.get());
 
-		if(input != null && input.isCCWReefSelectionChangeButtonPressed()) {
+		if (input != null && input.isCCWReefSelectionChangeButtonPressed()) {
 			handleCCWReefSelect();
 		} else if (input != null && input.isCWReefSelectionChangeButtonPressed()) {
 			handleCWReefSelect();
@@ -318,7 +318,8 @@ public class DriveFSMSystem {
 			currentTrajectory != null
 				&& currPose
 					.getTranslation()
-					.getDistance(currentTrajectory.getEndState().pose.getTranslation()) < VisionConstants.STOP_PATHFINDING_UPDATES.in(Meters);
+					.getDistance(currentTrajectory.getEndState().pose.getTranslation())
+					< VisionConstants.STOP_PATHFINDING_UPDATES.in(Meters);
 
 		if (!skipUpdates && Pathfinding.isNewPathAvailable()) {
 			currentPath = Pathfinding.getCurrentPath(pathConstraints, goalEndState);
@@ -466,10 +467,14 @@ public class DriveFSMSystem {
 		return false;
 	}
 
+	/**
+	 * Handles when the CCW Reef selector button is pressed.
+	 */
 	public void handleCCWReefSelect() {
 
 		if (currentBranchSide == BranchSide.LEFT) {
-			currentReefSide = reefSides[(currentReefSide.ordinal() - 1 + reefSides.length) % reefSides.length];
+			currentReefSide = reefSides
+			[(currentReefSide.ordinal() - 1 + reefSides.length) % reefSides.length];
 			currentBranchSide = BranchSide.RIGHT;
 		} else {
 			currentBranchSide = BranchSide.LEFT;
@@ -479,6 +484,9 @@ public class DriveFSMSystem {
 		goalEndState = new GoalEndState(0, targetPose.getRotation());
 	}
 
+	/**
+	 * Handles when the CW reef selector is pressed.
+	 */
 	public void handleCWReefSelect() {
 		if (currentBranchSide == BranchSide.RIGHT) {
 			currentReefSide = reefSides[(currentReefSide.ordinal() + 1) % reefSides.length];
@@ -536,6 +544,10 @@ public class DriveFSMSystem {
 		return drivetrain.getState().ModulePositions;
 	}
 
+	/**
+	 * Get the target alignment pose.
+	 * @return Target alignment pose
+	 */
 	@AutoLogOutput(key = "ReefSelectorTarget")
 	public Pose2d getTargetPose() {
 		return targetPose;
@@ -560,6 +572,10 @@ public class DriveFSMSystem {
 				visionStdDevs);
 	}
 
+
+	/**
+	 * Updates the simulation.
+	 */
 	public void updateSimulation() {
 		double currentTime = Utils.getCurrentTimeSeconds();
 		double deltaTime = currentTime - lastSimTime;
