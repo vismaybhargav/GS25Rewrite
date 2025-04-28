@@ -26,15 +26,46 @@ public final /* singleton */ class FieldHelper {
 		LEFT, RIGHT
 	}
 
-	public static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
+	private static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
+
+	public static final int TAG_ID_REEF_SIDE_A = 18;
+	public static final int TAG_ID_REEF_SIDE_B = 17;
+	public static final int TAG_ID_REEF_SIDE_C = 22;
+	public static final int TAG_ID_REEF_SIDE_D = 21;
+	public static final int TAG_ID_REEF_SIDE_E = 20;
+	public static final int TAG_ID_REEF_SIDE_F = 19;
 
 	static {
-		reefAprilTags.put(ReefSide.A, new AprilTag(18, TAG_LAYOUT.getTagPose(18).orElse(null)));
-		reefAprilTags.put(ReefSide.B, new AprilTag(17, TAG_LAYOUT.getTagPose(17).orElse(null)));
-		reefAprilTags.put(ReefSide.C, new AprilTag(22, TAG_LAYOUT.getTagPose(22).orElse(null)));
-		reefAprilTags.put(ReefSide.D, new AprilTag(21, TAG_LAYOUT.getTagPose(21).orElse(null)));
-		reefAprilTags.put(ReefSide.E, new AprilTag(20, TAG_LAYOUT.getTagPose(20).orElse(null)));
-		reefAprilTags.put(ReefSide.F, new AprilTag(19, TAG_LAYOUT.getTagPose(19).orElse(null)));
+		reefAprilTags.put(
+			ReefSide.A,
+			new AprilTag(
+				TAG_ID_REEF_SIDE_A,
+				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_A).orElse(null)));
+		reefAprilTags.put(
+			ReefSide.B,
+			new AprilTag(
+				TAG_ID_REEF_SIDE_B,
+				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_B).orElse(null)));
+		reefAprilTags.put(
+			ReefSide.C,
+			new AprilTag(
+				TAG_ID_REEF_SIDE_C,
+				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_C).orElse(null)));
+		reefAprilTags.put(
+			ReefSide.D,
+			new AprilTag(
+				TAG_ID_REEF_SIDE_D,
+				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_D).orElse(null)));
+		reefAprilTags.put(
+			ReefSide.E,
+			new AprilTag(
+				TAG_ID_REEF_SIDE_E,
+				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_E).orElse(null)));
+		reefAprilTags.put(
+			ReefSide.F,
+			new AprilTag(
+				TAG_ID_REEF_SIDE_F,
+				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_F).orElse(null)));
 	}
 
 	private FieldHelper() {
@@ -52,12 +83,20 @@ public final /* singleton */ class FieldHelper {
 
 		Transform2d offsetTransform = new Transform2d(
 			SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
-			branchSide == BranchSide.LEFT ?
-				AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters) :
-				AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
+			branchSide == BranchSide.LEFT
+				? AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters)
+				: AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
 			Rotation2d.k180deg
 		);
 
 		return atPose.transformBy(offsetTransform);
+	}
+
+	/**
+	 * Get a map of the reef april tags.
+	 * @return a map of the reef april tags
+	 */
+	public static Map<ReefSide, AprilTag> getReefAprilTags() {
+		return reefAprilTags;
 	}
 }
