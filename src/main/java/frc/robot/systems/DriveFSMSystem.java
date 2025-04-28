@@ -64,6 +64,7 @@ public class DriveFSMSystem {
 		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
 		* DriveConstants.ROTATION_DEADBAND) //4% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+
 	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle
 		= new SwerveRequest.FieldCentricFacingAngle()
 		.withDeadband(MAX_SPEED.in(MetersPerSecond)
@@ -71,6 +72,7 @@ public class DriveFSMSystem {
 		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
 		* DriveConstants.ROTATION_DEADBAND) //4% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+
 	private final SwerveRequest.RobotCentric driveRobotCentric
 		= new SwerveRequest.RobotCentric()
 		.withDeadband(MAX_SPEED.in(MetersPerSecond)
@@ -78,9 +80,12 @@ public class DriveFSMSystem {
 		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
 			* DriveConstants.ROTATION_DEADBAND) //4% deadband
 		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+
 	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
+
 	private final SwerveRequest.ApplyFieldSpeeds pathApplyFieldSpeeds =
 		new SwerveRequest.ApplyFieldSpeeds();
+
 	private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
 		new SwerveRequest.ApplyRobotSpeeds();
 
