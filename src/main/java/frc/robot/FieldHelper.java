@@ -13,46 +13,52 @@ import edu.wpi.first.math.geometry.Transform2d;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SimConstants;
 
-public /* singleton */ class FieldHelper {
+public final /* singleton */ class FieldHelper {
 
-    /**
-     * Reef Side A starts at the one closest to the driver station wall, and then moves counter clockwise around
-     */
-    public static enum ReefSide {
-        A, B, C, D, E, F
-    }
+	/**
+	 * Reef Side A starts at the one closest to the driver station wall,
+	 * and then moves counter clockwise around.
+	 */
+	public enum ReefSide {
+		A, B, C, D, E, F
+	}
 
-    public static enum BranchSide {
-        LEFT, RIGHT
-    }
+	public enum BranchSide {
+		LEFT, RIGHT
+	}
 
-    public static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
-    
-    static {
-        reefAprilTags.put(ReefSide.A, new AprilTag(18, TAG_LAYOUT.getTagPose(18).orElse(null)));
-        reefAprilTags.put(ReefSide.B, new AprilTag(17, TAG_LAYOUT.getTagPose(17).orElse(null)));
-        reefAprilTags.put(ReefSide.C, new AprilTag(22, TAG_LAYOUT.getTagPose(22).orElse(null)));
-        reefAprilTags.put(ReefSide.D, new AprilTag(21, TAG_LAYOUT.getTagPose(21).orElse(null)));
-        reefAprilTags.put(ReefSide.E, new AprilTag(20, TAG_LAYOUT.getTagPose(20).orElse(null)));
-        reefAprilTags.put(ReefSide.F, new AprilTag(19, TAG_LAYOUT.getTagPose(19).orElse(null)));
-    }
+	public static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
 
-    private FieldHelper() {
-        // Prevent instantiation
-    }
+	static {
+		reefAprilTags.put(ReefSide.A, new AprilTag(18, TAG_LAYOUT.getTagPose(18).orElse(null)));
+		reefAprilTags.put(ReefSide.B, new AprilTag(17, TAG_LAYOUT.getTagPose(17).orElse(null)));
+		reefAprilTags.put(ReefSide.C, new AprilTag(22, TAG_LAYOUT.getTagPose(22).orElse(null)));
+		reefAprilTags.put(ReefSide.D, new AprilTag(21, TAG_LAYOUT.getTagPose(21).orElse(null)));
+		reefAprilTags.put(ReefSide.E, new AprilTag(20, TAG_LAYOUT.getTagPose(20).orElse(null)));
+		reefAprilTags.put(ReefSide.F, new AprilTag(19, TAG_LAYOUT.getTagPose(19).orElse(null)));
+	}
 
-    public static Pose2d getAlignedDesiredPoseForReef(ReefSide reefSide, BranchSide branchSide) {
-        
-        Pose2d atPose = reefAprilTags.get(reefSide).pose.toPose2d();
+	private FieldHelper() {
+		// Prevent instantiation
+	}
 
-        Transform2d offsetTransform = new Transform2d(
-            SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
-            branchSide == BranchSide.LEFT ? 
-                AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters) : 
-                AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
-            Rotation2d.k180deg
-        );
+	/**
+	 * Get the aligned desired pose for the robot when it is at the reef.
+	 * @param reefSide the side of the reef (A, B, C, D, E, F)
+	 * @param branchSide the side of the branch (LEFT, RIGHT)
+	 * @return the aligned desired pose for the robot
+	 */
+	public static Pose2d getAlignedDesiredPoseForReef(ReefSide reefSide, BranchSide branchSide) {
+		Pose2d atPose = reefAprilTags.get(reefSide).pose.toPose2d();
 
-        return atPose.transformBy(offsetTransform);
-    }
+		Transform2d offsetTransform = new Transform2d(
+			SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
+			branchSide == BranchSide.LEFT
+				? AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters)
+				: AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
+			Rotation2d.k180deg
+		);
+
+		return atPose.transformBy(offsetTransform);
+	}
 }
