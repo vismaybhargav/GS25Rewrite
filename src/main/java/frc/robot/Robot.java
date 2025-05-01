@@ -24,8 +24,6 @@ import frc.robot.systems.DriveFSMSystem;
 import frc.robot.vision.Vision;
 import frc.robot.vision.VisionIOPhotonPoseEstimator;
 import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
-import frc.robot.vision.VisionIOPhotonVision;
-import frc.robot.vision.VisionIOPhotonVisionSim;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -71,7 +69,7 @@ public class Robot extends LoggedRobot {
 		if (isReal()) {
 			vision = new Vision(
 				driveSystem::addVisionMeasurement,
-                new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+				new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 				new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM)
 			);
 		} else {
@@ -134,9 +132,7 @@ public class Robot extends LoggedRobot {
 	}
 
 	@Override
-	public void simulationPeriodic() {
-		driveSystem.updateSimulation();
-	}
+	public void simulationPeriodic() { }
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
