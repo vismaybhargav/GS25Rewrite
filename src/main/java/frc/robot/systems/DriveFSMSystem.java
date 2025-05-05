@@ -22,6 +22,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -31,6 +32,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
+import frc.robot.Features;
 import frc.robot.Robot;
 
 // WPILib Imports
@@ -39,6 +41,8 @@ import frc.robot.Robot;
 import frc.robot.TeleopInput;
 import frc.robot.generated.LocalADStarAK;
 import frc.robot.generated.TunerConstants;
+import frc.robot.simulation.MapleSimSwerveDrivetrain;
+import frc.robot.simulation.SimSwerveDrivetrainConfig;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.VisionConstants;
@@ -119,7 +123,7 @@ public class DriveFSMSystem {
 		Math.pow(MAX_ANGULAR_RATE.in(RadiansPerSecond), 2)
 	);
 
-	private double lastSimTime;
+	public MapleSimSwerveDrivetrain simDrivetrain;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -134,6 +138,19 @@ public class DriveFSMSystem {
 		// Perform hardware init
 		drivetrain = TunerConstants.createDrivetrain();
 
+		if (Robot.isSimulation()) {
+			simDrivetrain = new MapleSimSwerveDrivetrain(
+				SimSwerveDrivetrainConfig
+					.getDefault()
+					.withPigeon(drivetrain.getPigeon2())
+					.withModuleLocations(drivetrain.getModuleLocations())
+					.withModules(drivetrain.getModules())
+					.withStartingPose(
+						new Pose2d(3, 3, new Rotation2d())
+					)
+			);
+		}
+
 		Pathfinding.setPathfinder(new LocalADStarAK());
 
 		PathPlannerLogging.setLogActivePathCallback((path) -> {
@@ -147,10 +164,6 @@ public class DriveFSMSystem {
 		PathPlannerLogging.setLogTargetPoseCallback((targPose) -> {
 			Logger.recordOutput("PathPlanner/Target Pose", targPose);
 		});
-
-		if (Robot.isSimulation()) {
-			lastSimTime = Utils.getCurrentTimeSeconds();
-		}
 
 		// Reset state machine
 		reset();
@@ -500,6 +513,9 @@ public class DriveFSMSystem {
 	 */
 	@AutoLogOutput(key = "Odometry/Robot")
 	public Pose2d getPose() {
+		if (Features.MAPLE_SIM_ENABLED) {
+			return simDrivetrain.getMapleSimDrive().getSimulatedDriveTrainPose();
+		}
 		return drivetrain.getState().Pose;
 	}
 
@@ -509,6 +525,11 @@ public class DriveFSMSystem {
 	 */
 	@AutoLogOutput(key = "Swerve/Chassis Speeds")
 	public ChassisSpeeds getChassisSpeeds() {
+		if (Features.MAPLE_SIM_ENABLED) {
+			return simDrivetrain
+				.getMapleSimDrive()
+				.getDriveTrainSimulatedChassisSpeedsFieldRelative();
+		}
 		return drivetrain.getState().Speeds;
 	}
 
@@ -546,6 +567,14 @@ public class DriveFSMSystem {
 	@AutoLogOutput(key = "ReefSelectorTarget")
 	public Pose2d getTargetPose() {
 		return targetPose;
+	}
+
+	/**
+	 * Get the maple sim drivetrain.
+	 * @return the maple sim swerve drivetrain
+	 */
+	public MapleSimSwerveDrivetrain getMapleSimDrivetrain() {
+		return simDrivetrain;
 	}
 
 	/**
