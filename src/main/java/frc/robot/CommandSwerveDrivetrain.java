@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.simulation.MapleSimSwerveDrivetrain;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements
@@ -168,7 +169,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 		SwerveDrivetrainConstants drivetrainConstants,
 		SwerveModuleConstants<?, ?, ?>... modules
 	) {
-		super(drivetrainConstants, modules);
+		super(
+			drivetrainConstants,
+			MapleSimSwerveDrivetrain.regulateModuleConstantsForSimulation(modules)
+		);
 		if (Utils.isSimulation()) {
 			startSimThread();
 		}
@@ -193,7 +197,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 		double odometryUpdateFrequency,
 		SwerveModuleConstants<?, ?, ?>... modules
 	) {
-		super(drivetrainConstants, odometryUpdateFrequency, modules);
+		super(
+			drivetrainConstants,
+			odometryUpdateFrequency,
+			MapleSimSwerveDrivetrain.regulateModuleConstantsForSimulation(modules)
+		);
 		if (Utils.isSimulation()) {
 			startSimThread();
 		}
@@ -231,7 +239,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 			odometryUpdateFrequency,
 			odometryStandardDeviation,
 			visionStandardDeviation,
-			modules
+			MapleSimSwerveDrivetrain.regulateModuleConstantsForSimulation(modules)
 		);
 
 		if (Utils.isSimulation()) {
