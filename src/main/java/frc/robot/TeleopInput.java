@@ -15,7 +15,7 @@ public class TeleopInput {
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private PS4Controller driveController;
+	private final PS4Controller driveController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -71,7 +71,7 @@ public class TeleopInput {
 	 * @return the pathfinding button pressed
 	 */
 	public boolean isPathfindButtonPressed() {
-		return false;
+		return true;
 	}
 
 	/**

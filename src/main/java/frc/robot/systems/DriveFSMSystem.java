@@ -1,14 +1,10 @@
 package frc.robot.systems;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Meters;
-
+import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
-import com.ctre.phoenix6.swerve.utility.PhoenixPIDController;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -17,11 +13,11 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
-import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -32,7 +28,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
-import frc.robot.Robot;
 
 // WPILib Imports
 
@@ -46,6 +41,8 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.FieldHelper.BranchSide;
 import frc.robot.FieldHelper.ReefSide;
 import frc.robot.FieldHelper;
+
+import static edu.wpi.first.units.Units.*;
 
 public class DriveFSMSystem {
 	/* ======================== Constants ======================== */
@@ -63,7 +60,7 @@ public class DriveFSMSystem {
 
 	/* ======================== Private variables ======================== */
 	private DriveFSMState currentState;
-	private CommandSwerveDrivetrain drivetrain;
+	private final CommandSwerveDrivetrain drivetrain;
 
 	private final SwerveRequest.FieldCentric drive
 		= new SwerveRequest.FieldCentric()
@@ -120,14 +117,13 @@ public class DriveFSMSystem {
 		Math.pow(MAX_ANGULAR_RATE.in(RadiansPerSecond), 2)
 	);
 
-	private PhoenixPIDController xController, yController, thetaController;
+	/* ========================= Final Align ===================== */
+	private PIDController xController;
+	private PIDController yController;
+	private PIDController thetaController;
 
 	// TODO: Use the same variable for both of these
-	private Pose2d targetAlignmentPose = 
-		FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
-
-	// Hardware devices should be owned by one and only one system. They must
-	// be private to their owner system and may not be used elsewhere.
+	private Pose2d targetAlignmentPose = new Pose2d(2, 3, new Rotation2d(Degrees.of(173)));
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -142,7 +138,7 @@ public class DriveFSMSystem {
 		Pathfinding.setPathfinder(new LocalADStarAK());
 
 		PathPlannerLogging.setLogActivePathCallback((path) -> {
-			Logger.recordOutput("PathPlanner/Trajectory", path.toArray(new Pose2d[path.size()]));
+			Logger.recordOutput("PathPlanner/Trajectory", path.toArray(new Pose2d[0]));
 		});
 
 		PathPlannerLogging.setLogCurrentPoseCallback((currentPose) -> {
@@ -153,9 +149,12 @@ public class DriveFSMSystem {
 			Logger.recordOutput("PathPlanner/Target Pose", targPose);
 		});
 
-		if (Robot.isSimulation()) {
-			lastSimTime = Utils.getCurrentTimeSeconds();
-		}
+		xController = new PIDController(14, 0, 0);
+		yController = new PIDController(14, 0, 0);
+		thetaController = new PIDController(1.2, 0, 0);
+
+		initializeFinalAlignment();
+		Logger.recordOutput("DriveFSM/Final Align/Target Pose", targetAlignmentPose);
 
 		// Reset state machine
 		reset();
@@ -166,18 +165,11 @@ public class DriveFSMSystem {
 	 * Return current FSM state.
 	 * @return Current FSM state
 	 */
+	@AutoLogOutput(key = "DriveFSM/Current State")
 	public DriveFSMState getCurrentState() {
 		return currentState;
 	}
 
-	/**
-	 * Get the current state's string value.
-	 * @return current state string value
-	 */
-	@AutoLogOutput(key = "DriveFSM/Current State")
-	public String getCurrentStateName() {
-		return currentState.name();
-	}
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -187,7 +179,7 @@ public class DriveFSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = DriveFSMState.TELEOP;
+		currentState = DriveFSMState.FINAL_ALIGN;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -200,8 +192,6 @@ public class DriveFSMSystem {
 	 *        the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
-		Logger.recordOutput("Timer", timer.get());
-
 		if (input != null && input.isCCWReefSelectionChangeButtonPressed()) {
 			handleCCWReefSelect();
 		} else if (input != null && input.isCWReefSelectionChangeButtonPressed()) {
@@ -242,7 +232,7 @@ public class DriveFSMSystem {
 	private DriveFSMState nextState(TeleopInput input) {
 
 		if (input == null) {
-			return DriveFSMState.TELEOP;
+			return DriveFSMState.FINAL_ALIGN;
 		}
 
 		switch (currentState) {
@@ -428,13 +418,57 @@ public class DriveFSMSystem {
 	}
 
 	/**
-	 * Handles the FINAL_ALIGN_STATE, when the robot is aligning to a target.
+	 * Handles the FINAL_ALIGN_STATE, when the robot is finished pathfinding to
+     * the final align ready pose.
 	 */
 	public void handleFinalAlignState() {
+		var currPose = getPose();
+
+		var xVel = xController.calculate(currPose.getX());
+		var yVel = yController.calculate(currPose.getY());
+		var thetaVel = thetaController.calculate(currPose.getRotation().getDegrees());
+
+		Logger.recordOutput("DriveFSM/Final Align/X Vel", xVel);
+		Logger.recordOutput("DriveFSM/Final Align/Y Vel", yVel);
+		Logger.recordOutput("DriveFSM/Final Align/Theta Vel", thetaVel);
+
+		drivetrain.setControl(
+			drive
+			.withVelocityX(xVel)
+			.withVelocityY(yVel)
+			.withRotationalRate(thetaVel)
+		);
 	}
 
+	/**
+	 * Initialize the final alignment.
+	 */
 	public void initializeFinalAlignment() {
-		var currPose = getPose();
+		// NOTE: This is just for testing right now, this initialization should happen
+		// when the robot is about to go into the pathfinding
+		/*targetAlignmentPose = FieldHelper.getAlignedDesiredPoseForReef(
+			currentReefSide, currentBranchSide
+		);*/
+
+		xController.reset();
+		yController.reset();
+		thetaController.reset();
+
+		xController.setSetpoint(targetAlignmentPose.getX());
+		yController.setSetpoint(targetAlignmentPose.getY());
+		thetaController.setSetpoint(targetAlignmentPose.getRotation().getDegrees());
+
+		//TODO: Add tolerance to the controllers
+	}
+
+	/**
+	 * Check if the final alignment is finished.
+	 * @return true if the final alignment is finished
+	 */
+	@AutoLogOutput(key = "DriveFSM/Final Align/Finished")
+	public boolean isFinalAlignmentFinished() {
+		// TODO: Also need a timer exit here, will figure that out after..
+		return xController.atSetpoint() && yController.atSetpoint() && thetaController.atSetpoint();
 	}
 
 	/**
@@ -473,7 +507,7 @@ public class DriveFSMSystem {
 	 * Determine if the pathfinding is done.
 	 * @return true if the pathfinding is done
 	 */
-	@AutoLogOutput(key = "Pathfinding finished")
+	@AutoLogOutput(key = "DriveFSM/Pathfinding/Finished")
 	public boolean isPathfindingFinished() {
 		if (finish) {
 			return true;
@@ -490,7 +524,6 @@ public class DriveFSMSystem {
 	 * Handles when the CCW Reef selector button is pressed.
 	 */
 	public void handleCCWReefSelect() {
-
 		if (currentBranchSide == BranchSide.LEFT) {
 			currentReefSide = reefSides
 			[(currentReefSide.ordinal() - 1 + reefSides.length) % reefSides.length];
@@ -522,7 +555,7 @@ public class DriveFSMSystem {
 	 * Get the pose of the drivetrain.
 	 * @return pose of the drivetrain
 	 */
-	@AutoLogOutput(key = "Odometry/Robot")
+	@AutoLogOutput(key = "DriveFSM/Robot Pose")
 	public Pose2d getPose() {
 		return drivetrain.getState().Pose;
 	}
@@ -531,7 +564,7 @@ public class DriveFSMSystem {
 	 * Get the chassis speeds of the drivetrain.
 	 * @return the drivetrain chassis speeds
 	 */
-	@AutoLogOutput(key = "Swerve/Chassis Speeds")
+	@AutoLogOutput(key = "DriveFSM/Swerve/Chassis Speeds")
 	public ChassisSpeeds getChassisSpeeds() {
 		return drivetrain.getState().Speeds;
 	}
@@ -540,7 +573,7 @@ public class DriveFSMSystem {
 	 * Get the drivetrain states.
 	 * @return the swerve module states
 	 */
-	@AutoLogOutput(key = "Swerve/States/Measured")
+	@AutoLogOutput(key = "DriveFSM/Swerve/States/Measured")
 	public SwerveModuleState[] getModuleStates() {
 		return drivetrain.getState().ModuleStates;
 	}
@@ -549,7 +582,7 @@ public class DriveFSMSystem {
 	 * Get the drivetrain targets.
 	 * @return drivetrain targets
 	 */
-	@AutoLogOutput(key = "Swerve/States/Targets")
+	@AutoLogOutput(key = "DriveFSM/Swerve/States/Targets")
 	public SwerveModuleState[] getModuleTargets() {
 		return drivetrain.getState().ModuleTargets;
 	}
@@ -558,7 +591,7 @@ public class DriveFSMSystem {
 	 * Get the drivetrain module positions.
 	 * @return the module positions
 	 */
-	@AutoLogOutput(key = "Swerve/Positions")
+	@AutoLogOutput(key = "DriveFSM/Swerve/Positions")
 	public SwerveModulePosition[] getModulePositions() {
 		return drivetrain.getState().ModulePositions;
 	}
