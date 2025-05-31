@@ -10,6 +10,7 @@ import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.units.measure.Distance;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SimConstants;
 
@@ -145,12 +146,28 @@ public final /* singleton */ class FieldHelper {
 		StationPosition stationPosition) {
 
 		Pose2d atPose = stationAprilTags.get(stationSide).pose.toPose2d();
+		
+		Distance yOffset;
+		switch(stationPosition) {
+			case FAR_LEFT:
+				yOffset = AutoConstants.STATION_FAR_LEFT_OFFSET;
+				break;
+			case LEFT:
+				yOffset = AutoConstants.STATION_LEFT_OFFSET;
+				break;
+			case FAR_RIGHT:
+				yOffset = AutoConstants.STATION_FAR_RIGHT_OFFSET;
+				break;
+			case RIGHT:
+				yOffset = AutoConstants.STATION_RIGHT_OFFSET;
+				break;
+			default:
+				yOffset = AutoConstants.STATION_CENTER_OFFSET;
+		}
 
 		Transform2d offsetTransform = new Transform2d(
 			SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
-			stationPosition == StationPosition.LEFT
-				? AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters)
-				: AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
+			yOffset.in(Meters), // Side to Side
 			Rotation2d.k180deg
 		);
 
