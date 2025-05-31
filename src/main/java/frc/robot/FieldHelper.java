@@ -99,4 +99,61 @@ public final /* singleton */ class FieldHelper {
 	public static Map<ReefSide, AprilTag> getReefAprilTags() {
 		return reefAprilTags;
 	}
+
+	public enum StationSide {
+		LEFT, RIGHT
+	}
+
+	public enum StationPosition {
+		FAR_LEFT, LEFT, CENTER, RIGHT, FAR_RIGHT
+	}
+
+	private static Map<StationSide, AprilTag> stationAprilTags = new HashMap<>();
+
+	public static final int TAG_ID_STATION_LEFT = 1;
+	public static final int TAG_ID_STATION_RIGHT = 2;
+
+	static {
+		stationAprilTags.put(
+			StationSide.LEFT,
+			new AprilTag(
+				TAG_ID_STATION_LEFT,
+				TAG_LAYOUT.getTagPose(TAG_ID_STATION_LEFT).orElse(null)));
+
+		stationAprilTags.put(
+			StationSide.RIGHT,
+			new AprilTag(
+				TAG_ID_STATION_RIGHT,
+				TAG_LAYOUT.getTagPose(TAG_ID_STATION_RIGHT).orElse(null)));
+	}
+
+	/**
+	 * Get a map of the station april tags.
+	 * @return a map of the station april tags
+	 */
+	public static Map<StationSide, AprilTag> getStationAprilTags() {
+		return stationAprilTags;
+	}
+
+	/**
+	 * Gets the desired pose for the robot to be aligned with the station.
+	 * @param stationSide the side of the station
+	 * @param stationPosition The position on the station
+	 * @return the desired pose for the robot to be aligned with the station
+	 */
+	public static Pose2d getAlignedDesiredPoseForStation(StationSide stationSide,
+		StationPosition stationPosition) {
+
+		Pose2d atPose = stationAprilTags.get(stationSide).pose.toPose2d();
+
+		Transform2d offsetTransform = new Transform2d(
+			SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
+			stationPosition == StationPosition.LEFT
+				? AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters)
+				: AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
+			Rotation2d.k180deg
+		);
+
+		return atPose.transformBy(offsetTransform);
+	}
 }

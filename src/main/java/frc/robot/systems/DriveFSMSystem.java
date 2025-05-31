@@ -288,9 +288,9 @@ public class DriveFSMSystem {
 
 		drivetrain.setControl(
 			drive
-				.withVelocityX(xSpeed)
-				.withVelocityY(ySpeed)
-				.withRotationalRate(thetaSpeed)
+				.withVelocityX(xSpeed * DriveConstants.TRANSLATIONAL_DAMP)
+				.withVelocityY(ySpeed * DriveConstants.TRANSLATIONAL_DAMP)
+				.withRotationalRate(thetaSpeed * DriveConstants.ROTATIONAL_DAMP)
 		);
 	}
 

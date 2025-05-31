@@ -26,6 +26,11 @@ public class Constants {
 		public static final double TRANSLATION_DEADBAND = 0.5;
 		public static final double ROTATION_DEADBAND = 0.5;
 		public static final AngularVelocity MAX_ANGULAR_VELO_RPS = RotationsPerSecond.of(0.75);
+
+		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
+		// 1 = 100% speed, 0.5 = 50% speed, 0.3 = 30% speec
+		public static final double TRANSLATIONAL_DAMP = 1;
+		public static final double ROTATIONAL_DAMP = 1;
 	}
 
 	public static final class ModuleConstants {
@@ -59,6 +64,13 @@ public class Constants {
 
 		public static final Distance REEF_Y_LEFT_OFFSET = Inches.of(-10);
 		public static final Distance REEF_Y_RIGHT_OFFSET = Inches.of(2.5);
+
+		//TODO: These are just rough estimates: Ask what the drivers think is reasonable
+		public static final Distance STATION_FAR_LEFT_OFFSET = Inches.of(-20);
+		public static final Distance STATION_LEFT_OFFSET = Inches.of(-10);
+		public static final Distance STATION_CENTER_OFFSET = Inches.of(0);
+		public static final Distance STATION_FAR_RIGHT_OFFSET = Inches.of(10);
+		public static final Distance STATION_RIGHT_OFFSET = Inches.of(20);
 	}
 
 	public static final class SimConstants {
