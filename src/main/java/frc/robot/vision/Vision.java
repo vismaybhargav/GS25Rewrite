@@ -24,6 +24,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.generated.VisionIOInputsAutoLogged;
 
 import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_BASELINE;
 import static frc.robot.Constants.VisionConstants.CAMERA_STD_DEV_FACTORS;
