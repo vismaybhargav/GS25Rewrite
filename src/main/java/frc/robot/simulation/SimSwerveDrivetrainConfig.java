@@ -22,6 +22,7 @@ import edu.wpi.first.units.measure.Mass;
 
 // Local Imports
 import frc.robot.Constants.SimConstants;
+import frc.robot.generated.TunerConstants;
 
 /**
  * Configuration helper for the MapleSimSwerveDrivetrain class.
@@ -52,6 +53,11 @@ public class SimSwerveDrivetrainConfig {
 			.withWheelCOF(SimConstants.WHEEL_COF)
 			.withModuleDriveMotor(DCMotor.getKrakenX60(1))
 			.withModuleSteerMotor(DCMotor.getKrakenX60(1))
+			.withModuleConstants(
+				TunerConstants.FRONT_LEFT,
+				TunerConstants.FRONT_RIGHT,
+				TunerConstants.BACK_LEFT,
+				TunerConstants.BACK_RIGHT)
 			.withStartingPose(new Pose2d());
 	}
 
