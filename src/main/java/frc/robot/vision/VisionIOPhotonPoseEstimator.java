@@ -38,7 +38,7 @@ public class VisionIOPhotonPoseEstimator implements VisionIO {
 
 	@Override
 	public void updateInputs(VisionIOInputs inputs) {
-		inputs.connected = camera.isConnected();
+		inputs.setConnected(camera.isConnected());
 
 		Optional<EstimatedRobotPose> estPose = Optional.empty();
 		Set<Short> tagIds = new HashSet<>();
@@ -69,15 +69,15 @@ public class VisionIOPhotonPoseEstimator implements VisionIO {
 			}
 		}
 
-		inputs.poseObservations = new PoseObservation[poseObservations.size()];
+		inputs.setPoseObservations(new PoseObservation[poseObservations.size()]);
 		for (int i = 0; i < poseObservations.size(); i++) {
-			inputs.poseObservations[i] = poseObservations.get(i);
+			inputs.getPoseObservations()[i] = poseObservations.get(i);
 		}
 
-		inputs.tagIds = new int[tagIds.size()];
+		inputs.setTagIds(new int[tagIds.size()]);
 		int i = 0;
 		for (int id : tagIds) {
-			inputs.tagIds[i++]  = id;
+			inputs.getTagIds()[i++]  = id;
 		}
 	}
 

@@ -24,6 +24,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.generated.VisionIOInputsAutoLogged;
 
 import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_BASELINE;
 import static frc.robot.Constants.VisionConstants.CAMERA_STD_DEV_FACTORS;
@@ -74,7 +75,7 @@ public class Vision extends SubsystemBase {
 	 * @return the yaw of the target
 	 */
 	public Rotation2d getTargetX(int cameraIndex) {
-		return inputs[cameraIndex].latestTargetObservation.tx();
+		return inputs[cameraIndex].getLatestTargetObservation().tx();
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public class Vision extends SubsystemBase {
 		// Loop over cameras
 		for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
 			// Update disconnected alert
-			disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
+			disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].isConnected());
 
 			// Initialize logging values
 			List<Pose3d> tagPoses = new LinkedList<>();
@@ -102,7 +103,7 @@ public class Vision extends SubsystemBase {
 			List<Pose3d> robotPosesRejected = new LinkedList<>();
 
 			// Add tag poses
-			for (int tagId : inputs[cameraIndex].tagIds) {
+			for (int tagId : inputs[cameraIndex].getTagIds()) {
 				var tagPose = TAG_LAYOUT.getTagPose(tagId);
 				if (tagPose.isPresent()) {
 					tagPoses.add(tagPose.get());
@@ -110,7 +111,7 @@ public class Vision extends SubsystemBase {
 			}
 
 			// Loop over pose observations
-			for (var observation : inputs[cameraIndex].poseObservations) {
+			for (var observation : inputs[cameraIndex].getPoseObservations()) {
 				// Check whether to reject pose
 				boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
 						|| (observation.tagCount() == 1

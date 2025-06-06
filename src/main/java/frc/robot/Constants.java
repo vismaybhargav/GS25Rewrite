@@ -9,8 +9,12 @@ import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
@@ -90,6 +94,71 @@ public class Constants {
 		public static final Voltage DRIVE_FRICTION_VOLTAGE = Volts.of(0.1);
 		public static final Voltage STEER_FRICTION_VOLTAGE = Volts.of(0.51);
 		public static final MomentOfInertia STEER_INERTIA = KilogramSquareMeters.of(0.05);
+
+		/* ================== PhotonSim Camera Properties ==================== */
+		public static final int CAM_FPS = 100;
+		public static final int CAM_RES_WIDTH_PIX = 640;
+		public static final int CAM_RES_HEIGHT_PIX = 480;
+
+
+		/* THE FOLLOWING CAMERA PROPERTIES ARE TAKEN FROM THE camprops.sqlite FILE */
+		public static final Matrix<N3, N3> REEF_CAMERA_CALIBRATION = new Matrix<>(
+			N3.instance, N3.instance,
+				new double[] {
+					554.8363329613238,
+					0.0,
+					319.771006175582,
+					0.0,
+					555.7640379607542,
+					210.90231168898111,
+					0.0,
+					0.0,
+					1.0
+				}
+			);
+
+		public static final Matrix<N8, N1> REEF_CAMERA_DISTORTION = new Matrix<>(
+			N8.instance, N1.instance,
+				new double[] {
+					0.032904169887820925,
+					0.024981667114235325,
+					-0.0024512685439365967,
+					9.347928373666906E-4,
+					-0.15993971100687385,
+					-2.8908154357146817E-4,
+					1.516375932970693E-4,
+					0.006735034604041476
+				}
+			);
+
+		public static final Matrix<N3, N3> STATION_CAMERA_CALIBRATION = new Matrix<>(
+			N3.instance, N3.instance,
+				new double[] {
+					548.8107781815636,
+					0.0,
+					335.98845208944647,
+					0.0,
+					549.91022315822,
+					261.5076314193876,
+					0.0,
+					0.0,
+					1.0
+				}
+			);
+
+		public static final Matrix<N8, N1> STATION_CAMERA_DISTORTION = new Matrix<>(
+			N8.instance, N1.instance,
+				new double[] {
+					0.046882076180144325,
+					-0.08739491623632688,
+					-7.369602850193537E-4,
+					9.49279422750342E-4,
+					0.015437967521711683,
+					-0.0018478126980591776,
+					0.004435053264404992,
+					-1.8178696218760975E-4
+				}
+			);
 	}
 
 	public static final class VisionConstants {
