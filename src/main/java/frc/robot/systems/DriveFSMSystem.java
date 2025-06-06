@@ -100,7 +100,7 @@ public class DriveFSMSystem {
 	private ReefSide currentReefSide = ReefSide.A;
 	private BranchSide currentBranchSide = BranchSide.RIGHT;
 	private Pose2d targetPose =
-		FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+		new Pose2d(2, 3, new Rotation2d(Degrees.of(173)));
 	private ReefSide[] reefSides = ReefSide.values();
 	private Pose2d originalTargetPose = new Pose2d(
 		targetPose.getTranslation(), targetPose.getRotation()
@@ -123,7 +123,6 @@ public class DriveFSMSystem {
 	private PIDController thetaController;
 
 	// TODO: Use the same variable for both of these
-	private Pose2d targetAlignmentPose = new Pose2d(2, 3, new Rotation2d(Degrees.of(173)));
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -149,12 +148,11 @@ public class DriveFSMSystem {
 			Logger.recordOutput("PathPlanner/Target Pose", targPose);
 		});
 
-		xController = new PIDController(14, 0, 0);
-		yController = new PIDController(14, 0, 0);
+		xController = new PIDController(13, 0, 0);
+		yController = new PIDController(13, 0, 0);
 		thetaController = new PIDController(1.2, 0, 0);
 
-		initializeFinalAlignment();
-		Logger.recordOutput("DriveFSM/Final Align/Target Pose", targetAlignmentPose);
+		Logger.recordOutput("DriveFSM/Final Align/Target Pose", targetPose);
 
 		// Reset state machine
 		reset();
@@ -179,7 +177,7 @@ public class DriveFSMSystem {
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
 	public void reset() {
-		currentState = DriveFSMState.FINAL_ALIGN;
+		currentState = DriveFSMState.TELEOP;
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
@@ -230,9 +228,8 @@ public class DriveFSMSystem {
 	 * @return FSM state for the next iteration
 	 */
 	private DriveFSMState nextState(TeleopInput input) {
-
 		if (input == null) {
-			return DriveFSMState.FINAL_ALIGN;
+			return DriveFSMState.TELEOP;
 		}
 
 		switch (currentState) {
@@ -248,6 +245,16 @@ public class DriveFSMSystem {
 			case PATHFIND:
 				if (input.isPathfindButtonPressed()) {
 					return DriveFSMState.PATHFIND;
+				} else if (
+					getPose()
+						.getTranslation()
+						.getDistance(targetPose.getTranslation())
+						< AutoConstants.POSE_TOLERANCE
+				) {
+					if (isFinalAlignmentFinished()) {
+						initializeFinalAlignment();
+					}
+					return DriveFSMState.FINAL_ALIGN;
 				} else {
 					return DriveFSMState.TELEOP;
 				}
@@ -454,9 +461,9 @@ public class DriveFSMSystem {
 		yController.reset();
 		thetaController.reset();
 
-		xController.setSetpoint(targetAlignmentPose.getX());
-		yController.setSetpoint(targetAlignmentPose.getY());
-		thetaController.setSetpoint(targetAlignmentPose.getRotation().getDegrees());
+		xController.setSetpoint(targetPose.getX());
+		yController.setSetpoint(targetPose.getY());
+		thetaController.setSetpoint(targetPose.getRotation().getDegrees());
 
 		//TODO: Add tolerance to the controllers
 	}
