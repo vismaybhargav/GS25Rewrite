@@ -16,7 +16,6 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
-import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;

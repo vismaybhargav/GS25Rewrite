@@ -56,7 +56,7 @@ public class MapleSimSwerveDrivetrain {
 		simModules = new SimSwerveModule[config.getModuleConstants().length];
 
 		var moduleConstants = config.getModuleConstants();
-		DriveTrainSimulationConfig simulationConfig = DriveTrainSimulationConfig.Default()
+		var simulationConfig = DriveTrainSimulationConfig.Default()
 				.withRobotMass(config.getRobotMass())
 				.withBumperSize(config.getBumperLength(), config.getBumperWidth())
 				.withGyro(COTS.ofPigeon2())

@@ -11,7 +11,6 @@ import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -165,6 +164,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	 * @param drivetrainConstants Drivetrain-wide constants for the swerve drive
 	 * @param modules             Constants for each specific module
 	 */
+	@SuppressWarnings("unused")
 	public CommandSwerveDrivetrain(
 		SwerveDrivetrainConstants drivetrainConstants,
 		SwerveModuleConstants<?, ?, ?>... modules
@@ -173,7 +173,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 			drivetrainConstants,
 			MapleSimSwerveDrivetrain.regulateModuleConstantsForSimulation(modules)
 		);
-		if (Utils.isSimulation()) {
+		if (Utils.isSimulation() && !Features.MAPLE_SIM_ENABLED) {
 			startSimThread();
 		}
 		configureAutoBuilder();
@@ -192,6 +192,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	 *                                   CAN FD, and 100 Hz on CAN 2.0.
 	 * @param modules                    Constants for each specific module
 	 */
+	@SuppressWarnings("unused")
 	public CommandSwerveDrivetrain(
 		SwerveDrivetrainConstants drivetrainConstants,
 		double odometryUpdateFrequency,
@@ -202,7 +203,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 			odometryUpdateFrequency,
 			MapleSimSwerveDrivetrain.regulateModuleConstantsForSimulation(modules)
 		);
-		if (Utils.isSimulation()) {
+		if (Utils.isSimulation() && !Features.MAPLE_SIM_ENABLED) {
 			startSimThread();
 		}
 		configureAutoBuilder();
@@ -227,6 +228,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	 *                                  and radians
 	 * @param modules                    Constants for each specific module
 	 */
+	@SuppressWarnings("unused")
 	public CommandSwerveDrivetrain(
 		SwerveDrivetrainConstants drivetrainConstants,
 		double odometryUpdateFrequency,
@@ -241,8 +243,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 			visionStandardDeviation,
 			MapleSimSwerveDrivetrain.regulateModuleConstantsForSimulation(modules)
 		);
-
-		if (Utils.isSimulation()) {
+		if (Utils.isSimulation() && !Features.MAPLE_SIM_ENABLED) {
 			startSimThread();
 		}
 		configureAutoBuilder();
@@ -324,6 +325,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 		}
 	}
 
+	/**
+	 * @note This method can only be used when physics sim is turned off,
+	 * it breaks the maple-simulation
+	 *
+	 * Starts the sim thread, which runs the simulation at a faster rate.
+	 */
 	private void startSimThread() {
 		lastSimTime = Utils.getCurrentTimeSeconds();
 
