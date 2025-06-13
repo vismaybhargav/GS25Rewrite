@@ -7,14 +7,12 @@ public abstract class FSMSystem {
 	/* ======================== Constants ======================== */
 
 	// FSM state definitions
-	public enum FSMState { }
+	public enum FSMState { };
 
 	/* ======================== Private variables ======================== */
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private FSMState previousState;
-	private FSMState currentState;
 
 	/* ======================== Constructor ======================== */
 
@@ -23,9 +21,7 @@ public abstract class FSMSystem {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public FSMSystem() {
-		reset();
-	}
+	public FSMSystem() { }
 
 	/* ======================== Public methods ======================== */
 
@@ -33,17 +29,13 @@ public abstract class FSMSystem {
 	 * Get the current FSM state.
 	 * @return current FSM state
 	 */
-	public FSMState getCurrentState() {
-		return currentState;
-	}
+	public abstract FSMState getCurrentState();
 
 	/**
 	 * Get the previous FSM state.
 	 * @return previous FSM state
 	 */
-	public FSMState getPreviousState() {
-		return previousState;
-	}
+	public abstract FSMState getPreviousState();
 
 	/**
 	 * Reset this system to its start state and call one tick of update.
@@ -66,7 +58,7 @@ public abstract class FSMSystem {
 	/**
 	 * Updates the logging information for the system.
 	 */
-	public void updateLogging() { }
+	public abstract void updateLogging();
 
 	/* ======================== Private methods ======================== */
 	/**
