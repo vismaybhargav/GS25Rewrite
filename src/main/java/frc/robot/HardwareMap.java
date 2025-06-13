@@ -14,6 +14,7 @@ public final class HardwareMap {
 	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
 	public static final int CAN_ID_SPARK_SHOOTER = 5;
 
+	public static final int CAN_ID_KRAKEN_ELEVATOR = 22;
 	public static final int CAN_ID_KRAKEN_CLIMBER = 21;
 
 	// Pneumatics channel numbers

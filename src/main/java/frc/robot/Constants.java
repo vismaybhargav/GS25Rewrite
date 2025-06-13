@@ -112,17 +112,47 @@ public class Constants {
 	public static final class MechConstants {
 		public static final int UPDATE_FREQUENCY_HZ = 100;
 
-		public static final class ClimberConstants {
-			public static final double CLIMBER_COUNTS_PER_REV = 453.6;
-			public static final double CLIMBER_PID_MARGIN_OF_ERROR = 3;
+		// Elevator Constants
+		public static final double ELEVATOR_KG = 0.20;
+		public static final double ELEVATOR_KS = 0.1;
+		public static final double ELEVATOR_KV = 0.001;
+		public static final double ELEVATOR_KA = 0.0;
+		public static final double ELEVATOR_KP = 3.0;
+		public static final double ELEVATOR_KI = 0.00;
+		public static final double ELEVATOR_KD = 0.00;
 
-			public static final double CLIMBER_PID_TARGET_LOW = 0;
-			public static final double CLIMBER_PID_TARGET_EXTEND = 130;
-			public static final double CLIMBER_PID_TARGET_CLIMB = 310;
-			public static final double CLIMBER_ENCODER_RESET_POSITION = CLIMBER_COUNTS_PER_REV;
+		public static final double ELEVATOR_CRUISE_VELO = 600;
+		public static final double ELEVATOR_TARGET_ACCEL = 1800;
+		public static final double ELEVATOR_EXPO_KV = 0.12;
 
-			public static final double CLIMB_POWER = 1.0;
-			public static final double CLIMB_REDUCED_POWER = 0.5;
-		}
-	}
+		// Elevator Unit Conversion
+		public static final double ELEVATOR_ROTS_TO_INCHES = 15 / (2 * Math.PI);
+
+		// Encoder Position Constants
+		public static final double ELEVATOR_JOYSTICK_INPUT_DEADBAND = 0.1;
+
+		public static final Distance ELEVATOR_UPPER_THRESHOLD = Units.Inches.of(37.3);
+		// DO NOT drive above this!
+		public static final Distance ELEVATOR_TARGET_L4 = Units.Inches.of(36);
+		public static final Distance ELEVATOR_TARGET_L3 = Units.Inches.of(19.1);
+		public static final Distance ELEVATOR_TARGET_L2 = Units.Inches.of(7.6);
+		public static final Distance ELEVATOR_TARGET_GROUND = Units.Inches.of(0);
+
+		public static final Distance ELEVATOR_INRANGE_VALUE = Units.Inches.of(0.1);
+		public static final Distance KG_CHECK = Units.Inches.of(0.5);
+
+		public static final double ELEVATOR_MANUAL_SCALE = 0.5;
+
+		// Climber Constants
+		public static final double CLIMBER_COUNTS_PER_REV = 453.6;
+		public static final double CLIMBER_PID_MARGIN_OF_ERROR = 3;
+
+		public static final double CLIMBER_PID_TARGET_LOW = 0;
+		public static final double CLIMBER_PID_TARGET_EXTEND = 130;
+		public static final double CLIMBER_PID_TARGET_CLIMB = 310;
+		public static final double CLIMBER_ENCODER_RESET_POSITION = CLIMBER_COUNTS_PER_REV;
+
+		public static final double CLIMB_POWER = 1.0;
+		public static final double CLIMB_REDUCED_POWER = 0.5;
+}
 }
