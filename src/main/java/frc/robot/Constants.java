@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.io.IOException;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -17,14 +19,15 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Filesystem;
 
 public class Constants {
 	public static final class DriveConstants {
 		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
-		public static final double TRANSLATION_DEADBAND = 0.5;
-		public static final double ROTATION_DEADBAND = 0.5;
+		public static final double TRANSLATION_DEADBAND = 0.1;
+		public static final double ROTATION_DEADBAND = 0.1;
 		public static final AngularVelocity MAX_ANGULAR_VELO_RPS = RotationsPerSecond.of(0.75);
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
@@ -93,8 +96,25 @@ public class Constants {
 	}
 
 	public static final class VisionConstants {
-		public static final AprilTagFieldLayout TAG_LAYOUT = AprilTagFieldLayout
+
+		public static final AprilTagFieldLayout TAG_LAYOUT;
+
+		static {
+			AprilTagFieldLayout layout;
+			try {
+				layout = Features.USE_TEST_FIELD ? new AprilTagFieldLayout(Filesystem.
+					getDeployDirectory() + "/gs-test-field.json") : AprilTagFieldLayout .loadField(AprilTagFields.k2025ReefscapeWelded);
+			} catch (IOException e) {
+				System.out.println("Could not find test field, defaulting to reefscape welded field.");
+				layout = AprilTagFieldLayout
 				.loadField(AprilTagFields.k2025ReefscapeWelded);
+			}
+			TAG_LAYOUT = layout;
+		}
+
+		public static final int TAG_ID_TEST_STATION = 1;
+		public static final int TAG_ID_TEST_REEF_LEFT = 2;
+		public static final int TAG_ID_TEST_REEF_RIGHT = 3;
 
 		public static final String REEF_CAMERA_NAME = "Reef_Camera";
 		public static final String STATION_CAMERA_NAME = "Source_Camera";

@@ -2,6 +2,7 @@ package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 import static edu.wpi.first.units.Units.Meters;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -22,6 +23,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -31,6 +33,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
+import frc.robot.Features;
 import frc.robot.Robot;
 
 // WPILib Imports
@@ -546,6 +549,22 @@ public class DriveFSMSystem {
 	@AutoLogOutput(key = "ReefSelectorTarget")
 	public Pose2d getTargetPose() {
 		return targetPose;
+	}
+
+
+	/**
+	 * Return ATs for the test field.
+	 * @return ATs for the test field.
+	 */
+	@AutoLogOutput(key = "TestFieldATs")
+	public Pose3d[] logTestFieldATs() {
+		return Features.USE_TEST_FIELD ? new Pose3d[] {
+			TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
+				.orElse(new Pose3d()),
+			TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_LEFT)
+				.orElse(new Pose3d()),
+			TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
+				.orElse(new Pose3d())} : new Pose3d[]{};
 	}
 
 	/**
