@@ -93,6 +93,22 @@ public class TeleopInput {
 		return driveController.getR1ButtonPressed();
 	}
 
+    public boolean isGroundButtonPressed() {
+
+    }
+
+    public boolean isL2ButtonPressed() {
+
+    }
+
+    public boolean isL3ButtonPressed() {
+
+    }
+
+    public boolean isL4ButtonPressed() {
+
+    }
+
 	/* ======================== Private methods ======================== */
 
 }

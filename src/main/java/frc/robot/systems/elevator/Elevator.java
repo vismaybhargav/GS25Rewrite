@@ -1,29 +1,114 @@
 package frc.robot.systems.elevator;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.generated.ElevatorIOInputsAutoLogged;
+import edu.wpi.first.wpilibj.DigitalInput;
+import frc.robot.TeleopInput;
+import frc.robot.systems.FSMSystem;
 import org.littletonrobotics.junction.Logger;
 
- public class Elevator extends SubsystemBase {
+public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.ElevatorCurrentState> {
+    public enum ElevatorWantedState {
+        MANUAL,
+        GO_TO_GROUND,
+        GO_TO_L2,
+        GO_TO_L3,
+        GO_TO_L4,
+    }
+
+    public enum ElevatorCurrentState {
+        MANUAL,
+        GOING_TO_GROUND,
+        GOING_TO_L2,
+        GOING_TO_L3,
+        GOING_TO_L4,
+    }
+
     private final ElevatorIO io;
     private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
-
+    private DigitalInput groundLimitSwitch;
 
     public Elevator(ElevatorIO io) {
+        super();
         this.io = io;
     }
 
     @Override
-    public void periodic() {
+    public void update(TeleopInput input) {
         io.updateInputs(inputs);
         Logger.processInputs("Elevator", inputs);
+
+        handleStates(input);
+
+        currentState = advanceState(input);
     }
 
-    public void update() {
+    @Override
+    public void reset() {
+        currentState = ElevatorCurrentState.MANUAL;
+        wantedState = ElevatorWantedState.MANUAL;
+    }
+
+    @Override
+    protected ElevatorCurrentState advanceState(TeleopInput input) {
+        if(input == null) {
+            return ElevatorCurrentState.MANUAL;
+        }
+
+        switch (wantedState) {
+            case MANUAL:
+                if (input.isGroundButtonPressed()
+                        && !isBottomLimitReached()
+                        && !input.isL4ButtonPressed()
+                        && !input.isL2ButtonPressed()
+                        && !input.isL3ButtonPressed()) {
+                    return ElevatorCurrentState.GOING_TO_GROUND;
+                }
+                if (input.isL2ButtonPressed()
+                        && !input.isL4ButtonPressed()
+                        && !input.isGroundButtonPressed()
+                        && !input.isL3ButtonPressed()) {
+                    return ElevatorCurrentState.GOING_TO_L2;
+                }
+                if (input.isL3ButtonPressed()
+                        && !input.isL4ButtonPressed()
+                        && !input.isGroundButtonPressed()
+                        && !input.isL2ButtonPressed()) {
+                    return ElevatorCurrentState.GOING_TO_L3;
+                }
+                if (input.isL4ButtonPressed()
+                        && !input.isGroundButtonPressed()
+                        && !input.isL2ButtonPressed()
+                        && !input.isL3ButtonPressed()) {
+                    return ElevatorCurrentState.GOING_TO_L4;
+                }
+                return ElevatorCurrentState.MANUAL;
+            case GO_TO_L2:
+                return ElevatorCurrentState.GOING_TO_L2;
+            case GO_TO_L3:
+                return ElevatorCurrentState.GOING_TO_L3;
+            case GO_TO_L4:
+                return ElevatorCurrentState.GOING_TO_L4;
+            default:
+                return currentState; // Fallback to current state if no match
+        }
+    }
+
+    private boolean isBottomLimitReached() {
+    }
+
+    @Override
+    protected void handleStates(TeleopInput input) {
+       switch (wantedState) {
+           case MANUAL -> handleManualState(input);
+           case GO_TO_GROUND, GO_TO_L2, GO_TO_L3, GO_TO_L4 -> handleStageState(wantedState);
+       }
+    }
+
+    private void handleStageState(ElevatorWantedState wantedState) {
 
     }
 
-    public void getInputs() {
+    private void handleManualState(TeleopInput input) {
+
     }
 }

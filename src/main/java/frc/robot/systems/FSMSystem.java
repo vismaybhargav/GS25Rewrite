@@ -2,19 +2,16 @@ package frc.robot.systems;
 
 import frc.robot.TeleopInput;
 
-public abstract class FSMSystem {
+public abstract class FSMSystem<W, C> {
 
 	/* ======================== Constants ======================== */
-
-	// FSM state definitions
-	public enum FSMState { }
 
 	/* ======================== Private variables ======================== */
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
-	private FSMState previousState;
-	private FSMState currentState;
+	protected W wantedState;
+	protected C currentState;
 
 	/* ======================== Constructor ======================== */
 
@@ -33,17 +30,17 @@ public abstract class FSMSystem {
 	 * Get the current FSM state.
 	 * @return current FSM state
 	 */
-	public FSMState getCurrentState() {
-		return currentState;
-	}
+    public C getCurrentState() {
+        return currentState;
+    }
 
 	/**
 	 * Get the previous FSM state.
 	 * @return previous FSM state
 	 */
-	public FSMState getPreviousState() {
-		return previousState;
-	}
+	public W getWantedState() {
+        return wantedState;
+    }
 
 	/**
 	 * Reset this system to its start state and call one tick of update.
@@ -53,16 +50,9 @@ public abstract class FSMSystem {
 	 * as it may be called multiple times in a boot cycle,
 	 * Ex. if the robot is enabled, disabled, then reenabled.
 	 */
-	public void reset() { }
+	abstract public void reset();
 
-	/**
-	 * Run FSM state outputs. This function only calls the FSM state
-	 * specific handlers.
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
-	 */
-	public abstract void handleState(TeleopInput input);
-
+    abstract public void update(TeleopInput input);
 	/**
 	 * Updates the logging information for the system.
 	 */
@@ -78,7 +68,9 @@ public abstract class FSMSystem {
  	 * @param input Global TeleopInput if robot in teleop mode or null if
  	 *        the robot is in autonomous mode.
  	 */
-	protected abstract void advanceState(TeleopInput input);
+	protected abstract C advanceState(TeleopInput input);
+
+    protected abstract void handleStates(TeleopInput input);
 
 	/* ------------------------ FSM state handlers ------------------------ */
 
