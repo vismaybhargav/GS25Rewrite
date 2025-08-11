@@ -140,21 +140,25 @@ public class Constants {
 			1.0 // Station Camera
 		};
 	}
+    public static final class ClimberConstants {
+        public static final double CLIMBER_COUNTS_PER_REV = 453.6;
+        public static final double CLIMBER_PID_MARGIN_OF_ERROR = 3;
 
-	public static final class MechConstants {
-		public static final int UPDATE_FREQUENCY_HZ = 100;
+        public static final double CLIMBER_PID_TARGET_LOW = 0;
+        public static final double CLIMBER_PID_TARGET_EXTEND = 130;
+        public static final double CLIMBER_PID_TARGET_CLIMB = 310;
+        public static final double CLIMBER_ENCODER_RESET_POSITION = CLIMBER_COUNTS_PER_REV;
 
-		public static final class ClimberConstants {
-			public static final double CLIMBER_COUNTS_PER_REV = 453.6;
-			public static final double CLIMBER_PID_MARGIN_OF_ERROR = 3;
+        public static final double CLIMB_POWER = 1.0;
+        public static final double CLIMB_REDUCED_POWER = 0.5;
+    }
 
-			public static final double CLIMBER_PID_TARGET_LOW = 0;
-			public static final double CLIMBER_PID_TARGET_EXTEND = 130;
-			public static final double CLIMBER_PID_TARGET_CLIMB = 310;
-			public static final double CLIMBER_ENCODER_RESET_POSITION = CLIMBER_COUNTS_PER_REV;
+	public static final class ElevatorConstants {
+        public static final Distance ELEVATOR_TARGET_GROUND = Inches.of(0);
+        public static final Distance ELEVATOR_TARGET_L2 = Inches.of(7.066);
+        public static final Distance ELEVATOR_TARGET_L3 = Inches.of(18.2);
+        public static final Distance ELEVATOR_TARGET_l4 = Inches.of(35.166);
+        public static final Distance ELEVATOR_TARGET_UPPER_THRESHOLD = Inches.of(37.3);
 
-			public static final double CLIMB_POWER = 1.0;
-			public static final double CLIMB_REDUCED_POWER = 0.5;
-		}
 	}
 }

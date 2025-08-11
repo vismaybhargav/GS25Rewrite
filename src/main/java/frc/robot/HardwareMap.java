@@ -7,20 +7,12 @@ import edu.wpi.first.wpilibj.DigitalInput;
  * configuration of the robot.
  */
 public final class HardwareMap {
-	// ID numbers for devices on the CAN bus
-	public static final int CAN_ID_SPARK_DRIVE_FRONT_RIGHT = 1;
-	public static final int CAN_ID_SPARK_DRIVE_BACK_RIGHT = 2;
-	public static final int CAN_ID_SPARK_DRIVE_FRONT_LEFT = 3;
-	public static final int CAN_ID_SPARK_DRIVE_BACK_LEFT = 4;
-	public static final int CAN_ID_SPARK_SHOOTER = 5;
+    // Elevator Maps
+    public static final int ELEVATOR_CAN_ID = 14;
 
-	public static final int CAN_ID_KRAKEN_CLIMBER = 21;
-
-	// Pneumatics channel numbers
-	public static final int PCM_CHANNEL_INTAKE_CYLINDER_FORWARD = 1;
-	public static final int PCM_CHANNEL_INTAKE_CYLINDER_REVERSE = 2;
-
-	public static final int CLIMBER_LIMIT_SWITCH_DIO_PORT = 3;
+    // Elevator Limit Switch DIO Ports
+    public static final int ELEVATOR_GROUND_LIMIT_SWITCH_DIO_PORT = 0; // FINAL
+    public static final int ELEVATOR_TOP_LIMIT_SWITCH_DIO_PORT = 1; // FINAL
 
 	// Place jumper from DIO pin 9 to GND to indicate this is a test setup
 	private static final int DIO_TEST_SETUP_CHANNEL = 9;

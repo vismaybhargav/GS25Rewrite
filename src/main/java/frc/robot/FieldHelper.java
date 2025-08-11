@@ -27,6 +27,13 @@ public final /* singleton */ class FieldHelper {
 		LEFT, RIGHT
 	}
 
+    public enum ReefLevel {
+        L1,
+        L2,
+        L3,
+        L4
+    }
+
 	private static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
 
 	public static final int TAG_ID_REEF_SIDE_A = 18;
