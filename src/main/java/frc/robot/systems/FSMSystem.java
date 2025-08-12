@@ -2,7 +2,7 @@ package frc.robot.systems;
 
 import frc.robot.TeleopInput;
 
-public abstract class FSMSystem<W, S> {
+public abstract class FSMSystem<W extends Enum<W>, S extends Enum<S>> {
 
     /**
      * The wanted state of the FSM is the state that the FSM is trying to reach.

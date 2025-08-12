@@ -1,4 +1,4 @@
-package frc.robot.systems;
+package frc.robot.systems.drivetrain;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -32,7 +32,6 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.Features;
 import frc.robot.Robot;
 
@@ -45,11 +44,11 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.VisionConstants;
-import frc.robot.FieldHelper.BranchSide;
-import frc.robot.FieldHelper.ReefSide;
-import frc.robot.FieldHelper;
+import frc.robot.util.FieldHelper.BranchSide;
+import frc.robot.util.FieldHelper.ReefSide;
+import frc.robot.util.FieldHelper;
 
-public class DriveFSMSystem {
+public class Drivetrain {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum DriveFSMState {
@@ -133,7 +132,7 @@ public class DriveFSMSystem {
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public DriveFSMSystem() {
+	public Drivetrain() {
 		// Perform hardware init
 		drivetrain = TunerConstants.createDrivetrain();
 

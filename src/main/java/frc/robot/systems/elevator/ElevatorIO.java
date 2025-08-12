@@ -9,7 +9,10 @@ public interface ElevatorIO {
                 false, // motorConnected
                 0.0,   // positionRad
                 0.0,   // velocityRadPerSec
-                0.0    // appliedVoltage
+                0.0,   // appliedVoltage
+                0.0,   // positionMeters
+                0.0,   // velocityMetersPerSec
+                0.0    // temperatureCelsius
         );
     }
 
@@ -17,16 +20,19 @@ public interface ElevatorIO {
             boolean motorConnected,
             double positionRad,
             double velocityRadPerSec,
-            double appliedVoltage
+            double appliedVoltage,
+            double positionMeters,
+            double velocityMetersPerSec,
+            double temperatureCelsius
     ) {}
 
-    default void updateInputs(ElevatorIOInputs inputs) {}
+    void updateInputs(ElevatorIOInputs inputs);
 
-    default void runVolts(double volts) {}
+    void runVolts(double volts);
 
-    default void stop() {}
+    void stop();
 
-    default void runPosition(double positionRad, double feedforward) {}
+    void runPosition(double positionRad, double feedforward);
 
-    default void setBrakeMode(boolean enabled) {}
+     void setBrakeMode(boolean enabled);
 }

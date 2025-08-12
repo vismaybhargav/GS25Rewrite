@@ -1,19 +1,23 @@
 package frc.robot.systems.elevator;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.Constants.ElevatorConstants;
+import frc.robot.HardwareMap;
 import frc.robot.Robot;
 import frc.robot.TeleopInput;
 import frc.robot.systems.FSMSystem;
 import org.littletonrobotics.junction.Logger;
+
+import static edu.wpi.first.units.Units.Meters;
 
 public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.ElevatorSystemState> {
     public enum ElevatorStage {
         GROUND (ElevatorConstants.ELEVATOR_TARGET_GROUND),
         L2     (ElevatorConstants.ELEVATOR_TARGET_L2),
         L3     (ElevatorConstants.ELEVATOR_TARGET_L3),
-        L4     (ElevatorConstants.ELEVATOR_TARGET_l4);
+        L4     (ElevatorConstants.ELEVATOR_TARGET_L4);
 
         private final Distance elevatorHeight;
 
@@ -45,11 +49,12 @@ public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.E
     private final ElevatorIO io;
     private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
-    private DigitalInput groundLimitSwitch;
+    private final DigitalInput groundLimitSwitch;
 
     public Elevator(ElevatorIO io) {
         super();
         this.io = io;
+        groundLimitSwitch = new DigitalInput(HardwareMap.ELEVATOR_GROUND_LIMIT_SWITCH_DIO_PORT);
     }
 
     @Override
@@ -124,7 +129,11 @@ public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.E
     }
 
     private boolean inRangeOfStage(ElevatorStage elevatorStage) {
-
+        return MathUtil.isNear(
+                elevatorStage.getHeight().in(Meters),
+                inputs.data.positionMeters(),
+                ElevatorConstants.ELEVATOR_TARGET_THRESHOLD.in(Meters)
+        );
     }
 
     private boolean isBottomLimitReached() {
@@ -145,9 +154,23 @@ public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.E
 
     private void handleStageState(ElevatorWantedState wantedState) {
         switch(wantedState) {
-            case: GO_TO_GROUND -> {
-                
-            }
+            case GO_TO_GROUND -> io.runPosition(
+                    ElevatorStage.GROUND.getHeight().in(Meters),
+                    0.0
+            );
+            case GO_TO_L2 -> io.runPosition(
+                    ElevatorStage.L2.getHeight().in(Meters),
+                    0.0
+            );
+            case GO_TO_L3 -> io.runPosition(
+                    ElevatorStage.L3.getHeight().in(Meters),
+                    0.0
+            );
+            case GO_TO_L4 -> io.runPosition(
+                    ElevatorStage.L4.getHeight().in(Meters),
+                    0.0
+            );
+            default -> io.stop();
         }
     }
 

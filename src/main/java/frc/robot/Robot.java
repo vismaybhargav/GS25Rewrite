@@ -16,7 +16,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 // WPILib Imports
-import frc.robot.systems.DriveFSMSystem;
+import frc.robot.systems.drivetrain.Drivetrain;
 
 // Systems
 
@@ -35,7 +35,7 @@ public class Robot extends LoggedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private DriveFSMSystem driveSystem;
+	private Drivetrain driveSystem;
 	private Vision vision;
 
 	/**
@@ -66,7 +66,7 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		driveSystem = new DriveFSMSystem();
+		driveSystem = new Drivetrain();
 
 		if (isReal()) {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {

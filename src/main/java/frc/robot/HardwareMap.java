@@ -14,6 +14,9 @@ public final class HardwareMap {
     public static final int ELEVATOR_GROUND_LIMIT_SWITCH_DIO_PORT = 0; // FINAL
     public static final int ELEVATOR_TOP_LIMIT_SWITCH_DIO_PORT = 1; // FINAL
 
+    // Elevator Motor ID
+    public static final int ELEVATOR_MOTOR_CAN_ID = 14;
+
 	// Place jumper from DIO pin 9 to GND to indicate this is a test setup
 	private static final int DIO_TEST_SETUP_CHANNEL = 9;
 	private static DigitalInput testBoardPin = new DigitalInput(HardwareMap.DIO_TEST_SETUP_CHANNEL);

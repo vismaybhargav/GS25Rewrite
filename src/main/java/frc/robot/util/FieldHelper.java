@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.robot.util;
 
 import static edu.wpi.first.units.Units.Meters;
 import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.units.measure.Distance;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SimConstants;
+import frc.robot.Features;
 
 public final /* singleton */ class FieldHelper {
 	/**

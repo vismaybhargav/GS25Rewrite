@@ -157,8 +157,9 @@ public class Constants {
         public static final Distance ELEVATOR_TARGET_GROUND = Inches.of(0);
         public static final Distance ELEVATOR_TARGET_L2 = Inches.of(7.066);
         public static final Distance ELEVATOR_TARGET_L3 = Inches.of(18.2);
-        public static final Distance ELEVATOR_TARGET_l4 = Inches.of(35.166);
+        public static final Distance ELEVATOR_TARGET_L4 = Inches.of(35.166);
         public static final Distance ELEVATOR_TARGET_UPPER_THRESHOLD = Inches.of(37.3);
+        public static final Distance ELEVATOR_TARGET_THRESHOLD = Inches.of(0.1);
 
 	}
 }
