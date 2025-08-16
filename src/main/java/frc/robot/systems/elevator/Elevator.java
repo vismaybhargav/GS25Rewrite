@@ -8,9 +8,10 @@ import frc.robot.HardwareMap;
 import frc.robot.Robot;
 import frc.robot.TeleopInput;
 import frc.robot.systems.FSMSystem;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.*;
 
 public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.ElevatorSystemState> {
     public enum ElevatorStage {
@@ -130,18 +131,10 @@ public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.E
 
     private boolean inRangeOfStage(ElevatorStage elevatorStage) {
         return MathUtil.isNear(
-                elevatorStage.getHeight().in(Meters),
-                inputs.data.positionMeters(),
-                ElevatorConstants.ELEVATOR_TARGET_THRESHOLD.in(Meters)
+                elevatorStage.getHeight().in(Inches),
+                getElevatorPosition().in(Inches),
+                ElevatorConstants.ELEVATOR_TARGET_THRESHOLD.in(Inches)
         );
-    }
-
-    private boolean isBottomLimitReached() {
-        if (Robot.isSimulation()) {
-            return false;
-        }
-
-        return groundLimitSwitch.get();
     }
 
     @Override
@@ -175,6 +168,43 @@ public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.E
     }
 
     private void handleManualState(TeleopInput input) {
+        double joystickInput = MathUtil.applyDeadband(
+                input.getManualElevatorMovementInput(),
+                ElevatorConstants.INPUT_DEADBAND
+        );
 
+        if(isBottomLimitReached() && joystickInput < 0) {
+            io.stop();
+        }
+
+        if(joystickInput == 0 && getElevatorPosition().in(Inches) > ElevatorConstants.KG_THRESHOLD.in(Inches)) {
+            io.runVolts(ElevatorConstants.KG);
+        } else {
+            io.runVelocity(joystickInput * ElevatorConstants.MAX_VELOCITY.in(MetersPerSecond));
+        }
+    }
+
+    @AutoLogOutput(key = "Elevator/Position")
+    private Distance getElevatorPosition() {
+        return Inches.of(inputs.data.positionRad());
+    }
+
+    @AutoLogOutput(key = "Elevator/Bottom Limit Reached")
+    private boolean isBottomLimitReached() {
+        if (Robot.isSimulation()) {
+            return false;
+        }
+
+        return groundLimitSwitch.get();
+    }
+
+    @AutoLogOutput(key = "Elevator/Wanted State")
+    public ElevatorWantedState getWantedState() {
+        return wantedState;
+    }
+
+    @AutoLogOutput(key = "Elevator/System State")
+    public ElevatorSystemState getSystemState() {
+        return systemState;
     }
 }

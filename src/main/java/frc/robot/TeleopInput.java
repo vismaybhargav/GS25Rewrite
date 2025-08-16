@@ -109,6 +109,10 @@ public class TeleopInput {
 
     }
 
+    public double getManualElevatorMovementInput() {
+
+    }
+
 	/* ======================== Private methods ======================== */
 
 }

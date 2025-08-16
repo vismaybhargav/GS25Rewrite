@@ -1,12 +1,5 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.KilogramSquareMeters;
-import static edu.wpi.first.units.Units.Pounds;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
 import java.io.IOException;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
@@ -14,12 +7,10 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.Mass;
-import edu.wpi.first.units.measure.MomentOfInertia;
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.units.measure.*;
 import edu.wpi.first.wpilibj.Filesystem;
+
+import static edu.wpi.first.units.Units.*;
 
 public class Constants {
 	public static final class DriveConstants {
@@ -160,6 +151,9 @@ public class Constants {
         public static final Distance ELEVATOR_TARGET_L4 = Inches.of(35.166);
         public static final Distance ELEVATOR_TARGET_UPPER_THRESHOLD = Inches.of(37.3);
         public static final Distance ELEVATOR_TARGET_THRESHOLD = Inches.of(0.1);
-
+        public static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(0.5);
+        public static final Voltage KG = Volts.of(12.0);
+        public static final Distance KG_THRESHOLD = Inches.of(2.0);
+        public static final double INPUT_DEADBAND = 0.1;
 	}
 }

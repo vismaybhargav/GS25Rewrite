@@ -27,19 +27,11 @@ public abstract class FSMSystem<W extends Enum<W>, S extends Enum<S>> {
     }
 
     /**
-     * Get the current FSM state.
-     * @return current FSM state
+     * Set the wanted state of the FSM.
+     * @param wantedState the state that the FSM is trying to reach
      */
-    public S getSystemState() {
-        return systemState;
-    }
-
-    /**
-     * Get the previous FSM state.
-     * @return previous FSM state
-     */
-    public W getWantedState() {
-        return wantedState;
+    public void requestWantedState(W wantedState) {
+        this.wantedState = wantedState;
     }
 
     /**

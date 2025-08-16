@@ -1,5 +1,7 @@
 package frc.robot.systems.elevator;
 
+import edu.wpi.first.units.measure.Voltage;
+
 public class ElevatorIOSim implements ElevatorIO {
     @Override
     public void updateInputs(ElevatorIOInputs inputs) {
@@ -7,7 +9,7 @@ public class ElevatorIOSim implements ElevatorIO {
     }
 
     @Override
-    public void runVolts(double volts) {
+    public void runVolts(Voltage volts) {
 
     }
 
@@ -23,6 +25,11 @@ public class ElevatorIOSim implements ElevatorIO {
 
     @Override
     public void setBrakeMode(boolean enabled) {
+
+    }
+
+    @Override
+    public void runVelocity(double velocity) {
 
     }
 }
