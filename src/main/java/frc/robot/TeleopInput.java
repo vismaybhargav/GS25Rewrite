@@ -96,6 +96,10 @@ public class TeleopInput {
 		return driveController.getRightBumperButtonPressed();
 	}
 
+	/**
+	 * Checks if the ground button is pressed.
+	 * @return true if the ground button is pressed, false otherwise
+	 */
 	public boolean isGroundButtonPressed() {
 		return mechController.getAButton();
 	}

@@ -8,203 +8,223 @@ import frc.robot.HardwareMap;
 import frc.robot.Robot;
 import frc.robot.TeleopInput;
 import frc.robot.systems.FSMSystem;
+
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-import static edu.wpi.first.units.Units.*;
-
 public class Elevator extends FSMSystem<Elevator.ElevatorWantedState, Elevator.ElevatorSystemState> {
-    public enum ElevatorStage {
-        GROUND (ElevatorConstants.ELEVATOR_TARGET_GROUND),
-        L2     (ElevatorConstants.ELEVATOR_TARGET_L2),
-        L3     (ElevatorConstants.ELEVATOR_TARGET_L3),
-        L4     (ElevatorConstants.ELEVATOR_TARGET_L4);
+	public enum ElevatorStage {
+		GROUND(ElevatorConstants.ELEVATOR_TARGET_GROUND),
+		L2(ElevatorConstants.ELEVATOR_TARGET_L2),
+		L3(ElevatorConstants.ELEVATOR_TARGET_L3),
+		L4(ElevatorConstants.ELEVATOR_TARGET_L4);
 
-        private final Distance elevatorHeight;
+		private final Distance elevatorHeight;
 
-        ElevatorStage(Distance elevatorHeight) {
-            this.elevatorHeight = elevatorHeight;
-        }
+		ElevatorStage(Distance theElevatorHeight) {
+			elevatorHeight = theElevatorHeight;
+		}
 
-        public Distance getHeight() {
-            return elevatorHeight;
-        }
-    }
+		/**
+		 * Get the height of the elevator stage.
+		 * @return The height of the elevator stage.
+		 */
+		public Distance getHeight() {
+			return elevatorHeight;
+		}
+	}
 
-    public enum ElevatorWantedState {
-        MANUAL,
-        GO_TO_GROUND,
-        GO_TO_L2,
-        GO_TO_L3,
-        GO_TO_L4,
-    }
+	public enum ElevatorWantedState {
+		MANUAL,
+		GO_TO_GROUND,
+		GO_TO_L2,
+		GO_TO_L3,
+		GO_TO_L4,
+	}
 
-    public enum ElevatorSystemState {
-        MANUAL,
-        GOING_TO_GROUND,
-        GOING_TO_L2,
-        GOING_TO_L3,
-        GOING_TO_L4,
-    }
+	public enum ElevatorSystemState {
+		MANUAL,
+		GOING_TO_GROUND,
+		GOING_TO_L2,
+		GOING_TO_L3,
+		GOING_TO_L4,
+	}
 
-    private final ElevatorIO io;
-    private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
+	private final ElevatorIO io;
+	private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
 
-    private final DigitalInput groundLimitSwitch;
+	private final DigitalInput groundLimitSwitch;
 
-    public Elevator(ElevatorIO io) {
-        super();
-        this.io = io;
-        groundLimitSwitch = new DigitalInput(HardwareMap.ELEVATOR_GROUND_LIMIT_SWITCH_DIO_PORT);
-    }
+	/**
+	 * Create an Elevator system.
+	 * @param ioImplementation The ElevatorIO implementation to use for hardware interaction.
+	 */
+	public Elevator(ElevatorIO ioImplementation) {
+		super();
+		io = ioImplementation;
+		groundLimitSwitch = new DigitalInput(HardwareMap.ELEVATOR_GROUND_LIMIT_SWITCH_DIO_PORT);
+	}
 
-    @Override
-    public void update(TeleopInput input) {
-        io.updateInputs(inputs);
-        Logger.processInputs("Elevator", inputs);
+	@Override
+	public void update(TeleopInput input) {
+		io.updateInputs(inputs);
+		Logger.processInputs("Elevator", inputs);
 
-        handleStates(input);
+		handleStates(input);
 
-        systemState = advanceState(input);
-    }
+		systemState = advanceState(input);
+	}
 
-    @Override
-    public void reset() {
-        systemState = ElevatorSystemState.MANUAL;
-        wantedState = ElevatorWantedState.MANUAL;
-    }
+	@Override
+	public void reset() {
+		systemState = ElevatorSystemState.MANUAL;
+		wantedState = ElevatorWantedState.MANUAL;
+	}
 
-    @Override
-    protected ElevatorSystemState advanceState(TeleopInput input) {
-        if(input == null) {
-            return ElevatorSystemState.MANUAL;
-        }
+	@Override
+	protected ElevatorSystemState advanceState(TeleopInput input) {
+		if (input == null) {
+			return ElevatorSystemState.MANUAL;
+		}
 
-        switch (wantedState) {
-            case MANUAL:
-                if (input.isGroundButtonPressed()
-                        && !isBottomLimitReached()
-                        && !input.isL4ButtonPressed()
-                        && !input.isL2ButtonPressed()
-                        && !input.isL3ButtonPressed()) {
-                    return ElevatorSystemState.GOING_TO_GROUND;
-                }
-                if (input.isL2ButtonPressed()
-                        && !input.isL4ButtonPressed()
-                        && !input.isGroundButtonPressed()
-                        && !input.isL3ButtonPressed()) {
-                    return ElevatorSystemState.GOING_TO_L2;
-                }
-                if (input.isL3ButtonPressed()
-                        && !input.isL4ButtonPressed()
-                        && !input.isGroundButtonPressed()
-                        && !input.isL2ButtonPressed()) {
-                    return ElevatorSystemState.GOING_TO_L3;
-                }
-                if (input.isL4ButtonPressed()
-                        && !input.isGroundButtonPressed()
-                        && !input.isL2ButtonPressed()
-                        && !input.isL3ButtonPressed()) {
-                    return ElevatorSystemState.GOING_TO_L4;
-                }
-                return ElevatorSystemState.MANUAL;
-            case GO_TO_GROUND:
-                return isBottomLimitReached() || inRangeOfStage(ElevatorStage.GROUND)
-                        ? ElevatorSystemState.MANUAL
-                        : ElevatorSystemState.GOING_TO_GROUND;
-            case GO_TO_L2:
-                return inRangeOfStage(ElevatorStage.L2)
-                        ? ElevatorSystemState.MANUAL
-                        : ElevatorSystemState.GOING_TO_L2;
-            case GO_TO_L3:
-                return inRangeOfStage(ElevatorStage.L3)
-                        ? ElevatorSystemState.MANUAL
-                        : ElevatorSystemState.GOING_TO_L3;
-            case GO_TO_L4:
-                return inRangeOfStage(ElevatorStage.L4)
-                        ? ElevatorSystemState.MANUAL
-                        : ElevatorSystemState.GOING_TO_L4;
-            default:
-                return ElevatorSystemState.MANUAL; // Fallback to manual state if no match
-        }
-    }
+		switch (wantedState) {
+			case MANUAL:
+				if (input.isGroundButtonPressed()
+						&& !isBottomLimitReached()
+						&& !input.isL4ButtonPressed()
+						&& !input.isL2ButtonPressed()
+						&& !input.isL3ButtonPressed()) {
+					return ElevatorSystemState.GOING_TO_GROUND;
+				}
+				if (input.isL2ButtonPressed()
+						&& !input.isL4ButtonPressed()
+						&& !input.isGroundButtonPressed()
+						&& !input.isL3ButtonPressed()) {
+					return ElevatorSystemState.GOING_TO_L2;
+				}
+				if (input.isL3ButtonPressed()
+						&& !input.isL4ButtonPressed()
+						&& !input.isGroundButtonPressed()
+						&& !input.isL2ButtonPressed()) {
+					return ElevatorSystemState.GOING_TO_L3;
+				}
+				if (input.isL4ButtonPressed()
+						&& !input.isGroundButtonPressed()
+						&& !input.isL2ButtonPressed()
+						&& !input.isL3ButtonPressed()) {
+					return ElevatorSystemState.GOING_TO_L4;
+				}
+				return ElevatorSystemState.MANUAL;
+			case GO_TO_GROUND:
+				return isBottomLimitReached() || inRangeOfStage(ElevatorStage.GROUND)
+						? ElevatorSystemState.MANUAL
+						: ElevatorSystemState.GOING_TO_GROUND;
+			case GO_TO_L2:
+				return inRangeOfStage(ElevatorStage.L2)
+						? ElevatorSystemState.MANUAL
+						: ElevatorSystemState.GOING_TO_L2;
+			case GO_TO_L3:
+				return inRangeOfStage(ElevatorStage.L3)
+						? ElevatorSystemState.MANUAL
+						: ElevatorSystemState.GOING_TO_L3;
+			case GO_TO_L4:
+				return inRangeOfStage(ElevatorStage.L4)
+						? ElevatorSystemState.MANUAL
+						: ElevatorSystemState.GOING_TO_L4;
+			default:
+				return ElevatorSystemState.MANUAL; // Fallback to manual state if no match
+		}
+	}
 
-    private boolean inRangeOfStage(ElevatorStage elevatorStage) {
-        return MathUtil.isNear(
-                elevatorStage.getHeight().in(Inches),
-                getElevatorPosition().in(Inches),
-                ElevatorConstants.ELEVATOR_TARGET_THRESHOLD.in(Inches)
-        );
-    }
+	private boolean inRangeOfStage(ElevatorStage elevatorStage) {
+		return MathUtil.isNear(
+				elevatorStage.getHeight().in(Inches),
+				getElevatorPosition().in(Inches),
+				ElevatorConstants.ELEVATOR_TARGET_THRESHOLD.in(Inches)
+		);
+	}
 
-    @Override
-    protected void handleStates(TeleopInput input) {
-       switch (wantedState) {
-           case MANUAL -> handleManualState(input);
-           case GO_TO_GROUND, GO_TO_L2, GO_TO_L3, GO_TO_L4 -> handleStageState(wantedState);
-       }
-    }
+	@Override
+	protected void handleStates(TeleopInput input) {
+		switch (wantedState) {
+			case MANUAL -> handleManualState(input);
+			case GO_TO_GROUND, GO_TO_L2, GO_TO_L3, GO_TO_L4 -> handleStageState(wantedState);
+			default -> throw new IllegalStateException("Unexpected wanted state: " + wantedState);
+		}
+	}
 
-    private void handleStageState(ElevatorWantedState wantedState) {
-        switch(wantedState) {
-            case GO_TO_GROUND -> io.runPosition(
-                    ElevatorStage.GROUND.getHeight().in(Meters),
-                    0.0
-            );
-            case GO_TO_L2 -> io.runPosition(
-                    ElevatorStage.L2.getHeight().in(Meters),
-                    0.0
-            );
-            case GO_TO_L3 -> io.runPosition(
-                    ElevatorStage.L3.getHeight().in(Meters),
-                    0.0
-            );
-            case GO_TO_L4 -> io.runPosition(
-                    ElevatorStage.L4.getHeight().in(Meters),
-                    0.0
-            );
-            default -> io.stop();
-        }
-    }
+	private void handleStageState(ElevatorWantedState wantedState) {
+		switch (wantedState) {
+			case GO_TO_GROUND -> io.runPosition(
+					ElevatorStage.GROUND.getHeight().in(Meters),
+					0.0
+			);
+			case GO_TO_L2 -> io.runPosition(
+					ElevatorStage.L2.getHeight().in(Meters),
+					0.0
+			);
+			case GO_TO_L3 -> io.runPosition(
+					ElevatorStage.L3.getHeight().in(Meters),
+					0.0
+			);
+			case GO_TO_L4 -> io.runPosition(
+					ElevatorStage.L4.getHeight().in(Meters),
+					0.0
+			);
+			default -> io.stop();
+		}
+	}
 
-    private void handleManualState(TeleopInput input) {
-        double joystickInput = MathUtil.applyDeadband(
-                input.getManualElevatorMovementInput(),
-                ElevatorConstants.INPUT_DEADBAND
-        );
+	private void handleManualState(TeleopInput input) {
+		double joystickInput = MathUtil.applyDeadband(
+				input.getManualElevatorMovementInput(),
+				ElevatorConstants.INPUT_DEADBAND
+		);
 
-        if(isBottomLimitReached() && joystickInput < 0) {
-            io.stop();
-        }
+		if (isBottomLimitReached() && joystickInput < 0) {
+			io.stop();
+		}
 
-        if(joystickInput == 0 && getElevatorPosition().in(Inches) > ElevatorConstants.KG_THRESHOLD.in(Inches)) {
-            io.runVolts(ElevatorConstants.KG);
-        } else {
-            io.runVelocity(joystickInput * ElevatorConstants.MAX_VELOCITY.in(MetersPerSecond));
-        }
-    }
+		if (joystickInput == 0 && getElevatorPosition().in(Inches) > ElevatorConstants.KG_THRESHOLD.in(Inches)) {
+			io.runVolts(ElevatorConstants.KG);
+		} else {
+			io.runVelocity(joystickInput * ElevatorConstants.MAX_VELOCITY.in(MetersPerSecond));
+		}
+	}
 
-    @AutoLogOutput(key = "Elevator/Position")
-    private Distance getElevatorPosition() {
-        return Inches.of(inputs.data.positionRad());
-    }
+	@AutoLogOutput(key = "Elevator/Position")
+	private Distance getElevatorPosition() {
+		return Inches.of(inputs.data.positionRad());
+	}
 
-    @AutoLogOutput(key = "Elevator/Bottom Limit Reached")
-    private boolean isBottomLimitReached() {
-        if (Robot.isSimulation()) {
-            return false;
-        }
+	@AutoLogOutput(key = "Elevator/Bottom Limit Reached")
+	private boolean isBottomLimitReached() {
+		if (Robot.isSimulation()) {
+			return false;
+		}
 
-        return groundLimitSwitch.get();
-    }
+		return groundLimitSwitch.get();
+	}
 
-    @AutoLogOutput(key = "Elevator/Wanted State")
-    public ElevatorWantedState getWantedState() {
-        return wantedState;
-    }
+	/**
+	 * Get the current wanted state of the elevator.
+	 * @return The current wanted state of the elevator.
+	 */
+	@AutoLogOutput(key = "Elevator/Wanted State")
+	public ElevatorWantedState getWantedState() {
+		return wantedState;
+	}
 
-    @AutoLogOutput(key = "Elevator/System State")
-    public ElevatorSystemState getSystemState() {
-        return systemState;
-    }
+	/**
+	 * Get the current system state of the elevator.
+	 * @return The current system state of the elevator.
+	 */
+	@AutoLogOutput(key = "Elevator/System State")
+	public ElevatorSystemState getSystemState() {
+		return systemState;
+	}
 }
