@@ -34,6 +34,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.simulation.MapleSimSwerveDrivetrain;
+import frc.robot.Features;
 
 /**
  * Class that extends the Phoenix 6 SwerveDrivetrain class and implements

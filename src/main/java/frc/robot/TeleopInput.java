@@ -13,12 +13,12 @@ import edu.wpi.first.wpilibj.XboxController;
 public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int DRIVE_CONTROLLER_PORT = 0;
-    private static final int MECH_CONTROLLER_PORT = 1;
+	private static final int MECH_CONTROLLER_PORT = 1;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
 	private XboxController driveController;
-    private XboxController mechController;
+	private XboxController mechController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -28,7 +28,7 @@ public class TeleopInput {
 	 */
 	public TeleopInput() {
 		driveController = new XboxController(DRIVE_CONTROLLER_PORT);
-        mechController = new XboxController(MECH_CONTROLLER_PORT);
+		mechController = new XboxController(MECH_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -96,25 +96,25 @@ public class TeleopInput {
 		return driveController.getRightBumperButtonPressed();
 	}
 
-    public boolean isGroundButtonPressed() {
-        return mechController.getAButton();
-    }
+	public boolean isGroundButtonPressed() {
+		return mechController.getAButton();
+	}
 
-    public boolean isL2ButtonPressed() {
-        return mechController.getXButton();
-    }
+	public boolean isL2ButtonPressed() {
+		return mechController.getXButton();
+	}
 
-    public boolean isL3ButtonPressed() {
-        return mechController.getBButton();
-    }
+	public boolean isL3ButtonPressed() {
+		return mechController.getBButton();
+	}
 
-    public boolean isL4ButtonPressed() {
-        return mechController.getYButton();
-    }
+	public boolean isL4ButtonPressed() {
+		return mechController.getYButton();
+	}
 
-    public double getManualElevatorMovementInput() {
-        return mechController.getLeftY();
-    }
+	public double getManualElevatorMovementInput() {
+		return mechController.getLeftY();
+	}
 
 	/* ======================== Private methods ======================== */
 
