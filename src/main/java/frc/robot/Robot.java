@@ -17,8 +17,10 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 // WPILib Imports
 import frc.robot.systems.drivetrain.Drivetrain;
-
-// Systems
+import frc.robot.systems.elevator.Elevator;
+import frc.robot.systems.elevator.ElevatorIOSim;
+import frc.robot.systems.elevator.ElevatorIOTalonFX;
+import frc.robot.systems.Superstructure;
 
 // Local
 import frc.robot.vision.Vision;
@@ -37,6 +39,8 @@ public class Robot extends LoggedRobot {
 	// Systems
 	private Drivetrain driveSystem;
 	private Vision vision;
+	private Elevator elevator;
+	private Superstructure superstructure;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -65,8 +69,6 @@ public class Robot extends LoggedRobot {
 
 		input = new TeleopInput();
 
-		// Instantiate all systems here
-		driveSystem = new Drivetrain();
 
 		if (isReal()) {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
@@ -80,6 +82,9 @@ public class Robot extends LoggedRobot {
 						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
 			}
+
+			elevator = new Elevator(new ElevatorIOTalonFX(HardwareMap.ELEVATOR_CAN_ID, "canbus"));
+
 		} else {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
 				vision = new Vision(
@@ -96,7 +101,14 @@ public class Robot extends LoggedRobot {
 						new VisionIOPhotonVisionSim(
 								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
 			}
+
+			elevator = new Elevator(new ElevatorIOSim());
 		}
+
+		// Instantiate all systems here
+		driveSystem = new Drivetrain();
+
+		superstructure = new Superstructure(driveSystem, elevator);
 	}
 
 	@Override
@@ -112,11 +124,13 @@ public class Robot extends LoggedRobot {
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
 		driveSystem.reset();
+		superstructure.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		driveSystem.update(input);
+		superstructure.update(input);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PS4Controller;
+import edu.wpi.first.wpilibj.XboxController;
 // WPILib Imports
 
 /**
@@ -13,10 +13,12 @@ import edu.wpi.first.wpilibj.PS4Controller;
 public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int DRIVE_CONTROLLER_PORT = 0;
+    private static final int MECH_CONTROLLER_PORT = 1;
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private PS4Controller driveController;
+	private XboxController driveController;
+    private XboxController mechController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -25,7 +27,8 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
+		driveController = new XboxController(DRIVE_CONTROLLER_PORT);
+        mechController = new XboxController(MECH_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -72,7 +75,7 @@ public class TeleopInput {
 	 * @return the pathfinding button pressed
 	 */
 	public boolean isPathfindButtonPressed() {
-		return driveController.getCircleButton();
+		return driveController.getXButton();
 	}
 
 	/**
@@ -81,7 +84,7 @@ public class TeleopInput {
 	 * @return true if the button is pressed, false otherwise
 	 */
 	public boolean isCCWReefSelectionChangeButtonPressed() {
-		return driveController.getL1ButtonPressed();
+		return driveController.getLeftBumperButtonPressed();
 	}
 
 	/**
@@ -90,27 +93,27 @@ public class TeleopInput {
 	 * @return true if the button is pressed, false otherwise
 	 */
 	public boolean isCWReefSelectionChangeButtonPressed() {
-		return driveController.getR1ButtonPressed();
+		return driveController.getRightBumperButtonPressed();
 	}
 
     public boolean isGroundButtonPressed() {
-
+        return mechController.getAButton();
     }
 
     public boolean isL2ButtonPressed() {
-
+        return mechController.getXButton();
     }
 
     public boolean isL3ButtonPressed() {
-
+        return mechController.getBButton();
     }
 
     public boolean isL4ButtonPressed() {
-
+        return mechController.getYButton();
     }
 
     public double getManualElevatorMovementInput() {
-
+        return mechController.getLeftY();
     }
 
 	/* ======================== Private methods ======================== */
