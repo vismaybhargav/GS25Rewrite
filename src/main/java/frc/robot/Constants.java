@@ -128,8 +128,8 @@ public class Constants {
 				-Units.inchesToMeters(9.5),
 				Units.inchesToMeters(37.596), new Rotation3d(0.0, -Math.toRadians(19), Math.PI));
 
-		public static final double MAX_AMBIGUITY = 0.5;
-		public static final double MAX_Z_ERROR = 5.0; // meters
+		public static final double MAX_AMBIGUITY = 0.1;
+		public static final double MAX_Z_ERROR = 0.3; // meters
 		public static final Distance STOP_PATHFINDING_UPDATES = Meters.of(2);
 
 		public static final double LINEAR_STD_DEV_BASELINE = 0.02;
@@ -137,7 +137,7 @@ public class Constants {
 
 		public static final double[] CAMERA_STD_DEV_FACTORS = new double[] {
 			1.0, // Reef Camera
-			1.0 // Station Camera
+			0.4 // Station Camera
 		};
 	}
 }

@@ -36,7 +36,7 @@ public final /* singleton */ class FieldHelper {
 	public static final int TAG_ID_REEF_SIDE_E = 20;
 	public static final int TAG_ID_REEF_SIDE_F = 19;
 
-	public static final int TAG_ID_TEST_REEF_LEFT = 2;
+	public static final int TAG_ID_TEST_REEF_LEFT = 6;
 	public static final int TAG_ID_TEST_REEF_RIGHT = 3;
 
 	static {
