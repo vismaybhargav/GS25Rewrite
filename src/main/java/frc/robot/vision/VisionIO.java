@@ -23,6 +23,7 @@ public interface VisionIO {
 		public boolean connected = false;
 		public TargetObservation latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
 		public PoseObservation[] poseObservations = new PoseObservation[0];
+		public TagObservation[] tagObservations = new TagObservation[0];
 		public int[] tagIds = new int[0];
 	}
 
@@ -38,6 +39,12 @@ public interface VisionIO {
 			int tagCount,
 			double averageTagDistance,
 			PoseObservationType type) {
+	}
+
+	public static record TagObservation(
+		double timestamp,
+		double distanceToTag,
+		int tagID) {
 	}
 
 	public static enum PoseObservationType {
