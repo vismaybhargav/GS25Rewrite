@@ -31,9 +31,11 @@ import static frc.robot.Constants.VisionConstants.LINEAR_STD_DEV_BASELINE;
 import static frc.robot.Constants.VisionConstants.MAX_AMBIGUITY;
 import static frc.robot.Constants.VisionConstants.MAX_Z_ERROR;
 import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
+import static frc.robot.Constants.VisionConstants.FIELD_BORDER_MARGIN;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Vision extends SubsystemBase {
@@ -41,14 +43,16 @@ public class Vision extends SubsystemBase {
 	private final VisionIO[] io;
 	private final VisionIOInputsAutoLogged[] inputs;
 	private final Alert[] disconnectedAlerts;
+	private final Rotation2d currentRotation;
 
 	/**
 	 * Creates a new Vision subsystem.
 	 * @param consumer The consumer to accept vision observations.
 	 * @param iO The IO objects to use for the cameras.
 	 */
-	public Vision(VisionConsumer consumer, VisionIO... iO) {
+	public Vision(VisionConsumer consumer, Rotation2d currentRotation, VisionIO... iO) {
 		this.visionConsumer = consumer;
+		this.currentRotation = currentRotation;
 		this.io = iO;
 
 		// Initialize inputs
@@ -115,15 +119,16 @@ public class Vision extends SubsystemBase {
 				boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
 						|| (observation.tagCount() == 1
 								// Cannot be high ambiguity
-								&& observation.ambiguity() > MAX_AMBIGUITY)
+								&& observation.ambiguity() > MAX_AMBIGUITY
+								&& Math.abs(currentRotation.minus(observation.pose().toPose2d().getRotation()).getRadians()) > Math.toRadians(5))
 						// Must have realistic Z coordinate
 						|| Math.abs(observation.pose().getZ()) > MAX_Z_ERROR
 
 						// Must be within the field boundaries
-						|| observation.pose().getX() < 0.0
-						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength()
-						|| observation.pose().getY() < 0.0
-						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth();
+						|| observation.pose().getX() < -FIELD_BORDER_MARGIN
+						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN
+						|| observation.pose().getY() < -FIELD_BORDER_MARGIN
+						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN;
 
 				// Add pose to log
 				robotPoses.add(observation.pose());

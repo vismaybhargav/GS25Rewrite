@@ -139,5 +139,7 @@ public class Constants {
 			1.0, // Reef Camera
 			0.4 // Station Camera
 		};
+
+		public static final double FIELD_BORDER_MARGIN = 0.5;
 	}
 }
