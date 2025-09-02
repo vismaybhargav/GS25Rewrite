@@ -15,7 +15,6 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 // WPILib Imports
 import frc.robot.systems.DriveFSMSystem;
 
@@ -73,13 +72,13 @@ public class Robot extends LoggedRobot {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
-						driveSystem.getPose().getRotation(),
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 						new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
 			} else {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
-						driveSystem.getPose().getRotation(),
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
 			}
@@ -87,7 +86,7 @@ public class Robot extends LoggedRobot {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
-						driveSystem.getPose().getRotation(),
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonPoseEstimatorSim(
 								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
 						new VisionIOPhotonPoseEstimatorSim(
@@ -95,7 +94,7 @@ public class Robot extends LoggedRobot {
 			} else {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
-						driveSystem.getPose().getRotation(),
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonVisionSim(
 								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
 						new VisionIOPhotonVisionSim(

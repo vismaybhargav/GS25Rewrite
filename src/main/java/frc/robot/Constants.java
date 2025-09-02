@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
@@ -14,6 +15,7 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
@@ -131,6 +133,7 @@ public class Constants {
 		public static final double MAX_AMBIGUITY = 0.1;
 		public static final double MAX_Z_ERROR = 0.3; // meters
 		public static final Distance STOP_PATHFINDING_UPDATES = Meters.of(2);
+		public static final Angle MAX_POSE_ROT_OFFSET = Degrees.of(5);
 
 		public static final double LINEAR_STD_DEV_BASELINE = 0.02;
 		public static final double ANGULAR_STD_DEV_BASELINE = 0.06;
