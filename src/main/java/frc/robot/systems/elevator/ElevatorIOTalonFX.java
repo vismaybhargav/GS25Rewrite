@@ -15,82 +15,89 @@ import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.PhoenixUtil;
 
 public class ElevatorIOTalonFX implements ElevatorIO {
-    // The one and only...
-    private final TalonFX talon;
+	// The one and only...
+	protected final TalonFX talon;
 
-    // Motion Requests
-    private final VoltageOut voltageOut = new VoltageOut(0.0).withUpdateFreqHz(0.0);
-    private final MotionMagicVoltage motionMagicVoltage = new MotionMagicVoltage(0);
-    private final VelocityDutyCycle velocityOut = new VelocityDutyCycle(0.0)
-            .withUpdateFreqHz(0.0)
-            .withFeedForward(0.0);
+	// Motion Requests
+	private final VoltageOut voltageOut = new VoltageOut(0.0).withUpdateFreqHz(0.0);
+	private final MotionMagicVoltage motionMagicVoltage = new MotionMagicVoltage(0);
+	private final VelocityDutyCycle velocityOut = new VelocityDutyCycle(0.0)
+			.withUpdateFreqHz(0.0)
+			.withFeedForward(0.0);
 
-    // Signals to read from the motor
-    private final StatusSignal<Angle> position;
-    private final StatusSignal<AngularVelocity> velocity;
-    private final StatusSignal<Voltage> appliedVolts;
-    private final StatusSignal<Temperature> temperature;
+	// Signals to read from the motor
+	private final StatusSignal<Angle> position;
+	private final StatusSignal<AngularVelocity> velocity;
+	private final StatusSignal<Voltage> appliedVolts;
+	private final StatusSignal<Temperature> temperature;
 
-    public ElevatorIOTalonFX(int id, String canBus) {
-        talon = new TalonFX(id, canBus);
+	/**
+	 * Constructor.
+	 * @param id CAN ID
+	 * @param canBus CAN Bus name
+	 */
+	public ElevatorIOTalonFX(int id, String canBus) {
+		talon = new TalonFX(id, canBus);
 
-        position = talon.getPosition();
-        velocity = talon.getVelocity();
-        appliedVolts = talon.getMotorVoltage();
-        temperature = talon.getDeviceTemp();
+		position = talon.getPosition();
+		velocity = talon.getVelocity();
+		appliedVolts = talon.getMotorVoltage();
+		temperature = talon.getDeviceTemp();
 
-        BaseStatusSignal.setUpdateFrequencyForAll(
-                100,
-                position,
-                velocity,
-                appliedVolts,
-                temperature
-        );
+		BaseStatusSignal.setUpdateFrequencyForAll(
+				100,
+				position,
+				velocity,
+				appliedVolts,
+				temperature
+		);
 
-        PhoenixUtil.registerSignals(
-                true,
-                position,
-                velocity,
-                appliedVolts,
-                temperature
-        );
-    }
+		PhoenixUtil.registerSignals(
+				true,
+				position,
+				velocity,
+				appliedVolts,
+				temperature
+		);
+	}
 
-    @Override
-    public void updateInputs(ElevatorIOInputs inputs) {
-        inputs.data = new ElevatorIOData(
-                BaseStatusSignal.isAllGood(position, velocity, appliedVolts, temperature),
-                Units.rotationsToRadians(position.getValueAsDouble()),
-                Units.rotationsToRadians(velocity.getValueAsDouble()),
-                appliedVolts.getValueAsDouble(), // volts
-                temperature.getValueAsDouble()
-        );
-    }
+	@Override
+	public void updateInputs(ElevatorIOInputs inputs) {
+		inputs.data = new ElevatorIOData(
+				BaseStatusSignal.isAllGood(position, velocity, appliedVolts, temperature),
+				Units.rotationsToRadians(position.getValueAsDouble()),
+				Units.rotationsToRadians(velocity.getValueAsDouble()),
+				appliedVolts.getValueAsDouble(), // volts
+				temperature.getValueAsDouble()
+		);
+	}
 
-    @Override
-    public void runVolts(Voltage volts) {
-        talon.setControl(voltageOut.withOutput(volts));
-    }
+	@Override
+	public void runVolts(Voltage volts) {
+		talon.setControl(voltageOut.withOutput(volts));
+	}
 
-    @Override
-    public void stop() {
-        talon.stopMotor();
-    }
+	@Override
+	public void stop() {
+		talon.stopMotor();
+	}
 
-    @Override
-    public void runPosition(double positionRad, double feedforward) {
-        talon.setControl(
-            motionMagicVoltage.withPosition(positionRad).withFeedForward(feedforward)
-        );
-    }
+	@Override
+	public void runPosition(double positionRad, double feedforward) {
+		talon.setControl(
+			motionMagicVoltage.withPosition(positionRad).withFeedForward(feedforward)
+		);
+	}
 
-    @Override
-    public void setBrakeMode(boolean enabled) {
-        talon.setNeutralMode(enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast);
-    }
+	@Override
+	public void setBrakeMode(boolean enabled) {
+		talon.setNeutralMode(enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast);
+	}
 
-    @Override
-    public void runVelocity(double velocity) {
-
-    }
+	@Override
+	public void runVelocity(double velocity) {
+		talon.setControl(
+			velocityOut.withVelocity(velocity)
+		);
+	}
 }
