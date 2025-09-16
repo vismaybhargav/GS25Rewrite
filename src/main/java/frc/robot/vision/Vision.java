@@ -141,7 +141,7 @@ public class Vision extends SubsystemBase {
 						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN
 						|| observation.pose().getY() < -FIELD_BORDER_MARGIN
 						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN;
-				
+
 				// Add pose to log
 				robotPoses.add(observation.pose());
 				if (rejectPose) {
@@ -155,40 +155,13 @@ public class Vision extends SubsystemBase {
 					continue;
 				}
 
-				//attempt 1 at dynamic shit
-				double totalDistanceX = 0.0;
-				double totalDistanceY = 0.0;
-				int contributingTags = 0;
-
-				for (int tagId : inputs[cameraIndex].tagIds) {
-					var tagPoseOpt = TAG_LAYOUT.getTagPose(tagId);
-					if (tagPoseOpt.isPresent()) {
-						var tagPose = tagPoseOpt.get();
-						totalDistanceX += Math.abs(observation.pose().getX() - tagPose.getX());
-						totalDistanceY += Math.abs(observation.pose().getY() - tagPose.getY());
-						contributingTags++;
-					}
-				}
-
-				// If no tag pose found, fall back to average distance
-				double distanceX = (contributingTags > 0)
-						? totalDistanceX / contributingTags
-						: observation.averageTagDistance();
-				double distanceY = (contributingTags > 0)
-						? totalDistanceY / contributingTags
-						: observation.averageTagDistance();
-
-				// Scale uncertainties
-				double tagFactor = Math.sqrt(Math.max(1, observation.tagCount()));
-
-				double linearStdDevX = LINEAR_STD_DEV_BASELINE * (distanceX * distanceX) / tagFactor;
-				double linearStdDevY = LINEAR_STD_DEV_BASELINE * (distanceY * distanceY) / tagFactor;
-				double angularStdDev = ANGULAR_STD_DEV_BASELINE * (observation.averageTagDistance() / tagFactor);
-
-				// Apply per-camera tuning factors
+				// Calculate standard deviations
+				double stdDevFactor =
+					Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
+				double linearStdDev = LINEAR_STD_DEV_BASELINE * stdDevFactor;
+				double angularStdDev = ANGULAR_STD_DEV_BASELINE * stdDevFactor;
 				if (cameraIndex < CAMERA_STD_DEV_FACTORS.length) {
-					linearStdDevX *= CAMERA_STD_DEV_FACTORS[cameraIndex];
-					linearStdDevY *= CAMERA_STD_DEV_FACTORS[cameraIndex];
+					linearStdDev *= CAMERA_STD_DEV_FACTORS[cameraIndex];
 					angularStdDev *= CAMERA_STD_DEV_FACTORS[cameraIndex];
 				}
 
@@ -196,8 +169,7 @@ public class Vision extends SubsystemBase {
 				visionConsumer.accept(
 						observation.pose().toPose2d(),
 						observation.timestamp(),
-						VecBuilder.fill(linearStdDevX, linearStdDevY, angularStdDev));
-			
+						VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
 			}
 
 			// Log camera datadata
