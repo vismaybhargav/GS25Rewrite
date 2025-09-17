@@ -140,7 +140,7 @@ public class Constants {
 
 		public static final double[] CAMERA_STD_DEV_FACTORS = new double[] {
 			1.0, // Reef Camera
-			0.4 // Station Camera
+			1 // Station Camera
 		};
 
 		public static final double FIELD_BORDER_MARGIN = 0.5;
