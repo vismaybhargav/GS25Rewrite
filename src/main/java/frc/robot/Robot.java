@@ -26,6 +26,8 @@ import frc.robot.vision.VisionIOPhotonPoseEstimator;
 import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
 import frc.robot.vision.VisionIOPhotonVision;
 import frc.robot.vision.VisionIOPhotonVisionSim;
+import frc.robot.vision.VisionIOYALL;
+import limelight.networktables.Orientation3d;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -69,18 +71,43 @@ public class Robot extends LoggedRobot {
 		driveSystem = new DriveFSMSystem();
 
 		if (isReal()) {
-			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
-				vision = new Vision(
+			if (Features.USE_LIMELIGHT) {
+				if (Features.USE_YALL) {
+					vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
+						new VisionIOYALL("limelight",
+							() -> {
+								var pigeon = driveSystem.getDrivetrain().getPigeon2();
+								return new Orientation3d(
+									pigeon.getRotation3d(),
+									pigeon.getAngularVelocityZDevice().getValue(),
+									pigeon.getAngularVelocityYDevice().getValue(),
+									pigeon.getAngularVelocityXDevice().getValue()
+								);
+							}
+						));
+				} else {
+					vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
+						new VisionIOPhotonVision("limelight-reef", ROBOT_TO_REEF_CAM),
+						new VisionIOPhotonVision("limelight-station", ROBOT_TO_STATION_CAM));
+				}
+			} else {
+				if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+					vision = new Vision(
 						driveSystem::addVisionMeasurement,
 						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 						new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
-			} else {
-				vision = new Vision(
+				} else {
+					vision = new Vision(
 						driveSystem::addVisionMeasurement,
 						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+				}
 			}
 		} else {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {

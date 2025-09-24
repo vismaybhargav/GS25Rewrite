@@ -22,8 +22,10 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.util.PixelFormat;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -153,6 +155,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 				.withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons());
 		};
 	private RobotConfig config = null;
+
+	private SwerveDriveOdometry odometry = new SwerveDriveOdometry(getKinematics(), BLUE_ALLIANCE_PERSPECTIVE_ROTATION, getState().ModulePositions);
 
 	/**
 	 * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -327,6 +331,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
 			/* use the measured time delta, get battery voltage from WPILib */
 			updateSimState(deltaTime, RobotController.getBatteryVoltage());
+			periodic();
 		});
 		simNotifier.startPeriodic(SIM_LOOP_PERIOD);
 	}
@@ -385,6 +390,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 	 */
 	public BiConsumer<ChassisSpeeds, DriveFeedforwards> getPpPathfindConsumer() {
 		return ppPathfindConsumer;
+	}
+
+	public Pose2d getOdometryPose() {
+		return odometry.getPoseMeters();
 	}
 
 	/**

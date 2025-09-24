@@ -501,16 +501,25 @@ public class DriveFSMSystem {
 	 * Get the pose of the drivetrain.
 	 * @return pose of the drivetrain
 	 */
-	@AutoLogOutput(key = "Odometry/Robot")
+	@AutoLogOutput(key = "Robot State/Pose")
 	public Pose2d getPose() {
 		return drivetrain.getState().Pose;
+	}
+
+	/**
+	 * Get the odometry pose of the drivetrain.
+	 * @return odometry pose of the drivetrain
+	 */
+	@AutoLogOutput(key = "Odometry/Pose")
+	public Pose2d getOdometryPose() {
+		return drivetrain.getOdometryPose();
 	}
 
 	/**
 	 * Get the chassis speeds of the drivetrain.
 	 * @return the drivetrain chassis speeds
 	 */
-	@AutoLogOutput(key = "Swerve/Chassis Speeds")
+	@AutoLogOutput(key = "Odometry/Swerve/Chassis Speeds")
 	public ChassisSpeeds getChassisSpeeds() {
 		return drivetrain.getState().Speeds;
 	}
@@ -519,7 +528,7 @@ public class DriveFSMSystem {
 	 * Get the drivetrain states.
 	 * @return the swerve module states
 	 */
-	@AutoLogOutput(key = "Swerve/States/Measured")
+	@AutoLogOutput(key = "Odometry/Swerve/States/Measured")
 	public SwerveModuleState[] getModuleStates() {
 		return drivetrain.getState().ModuleStates;
 	}
@@ -528,7 +537,7 @@ public class DriveFSMSystem {
 	 * Get the drivetrain targets.
 	 * @return drivetrain targets
 	 */
-	@AutoLogOutput(key = "Swerve/States/Targets")
+	@AutoLogOutput(key = "Odometry/Swerve/States/Targets")
 	public SwerveModuleState[] getModuleTargets() {
 		return drivetrain.getState().ModuleTargets;
 	}
@@ -537,7 +546,7 @@ public class DriveFSMSystem {
 	 * Get the drivetrain module positions.
 	 * @return the module positions
 	 */
-	@AutoLogOutput(key = "Swerve/Positions")
+	@AutoLogOutput(key = "Odometry/Swerve/Positions")
 	public SwerveModulePosition[] getModulePositions() {
 		return drivetrain.getState().ModulePositions;
 	}
@@ -565,6 +574,10 @@ public class DriveFSMSystem {
 				.orElse(new Pose3d()),
 			TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
 				.orElse(new Pose3d())} : new Pose3d[]{};
+	}
+
+	public CommandSwerveDrivetrain getDrivetrain() {
+		return drivetrain;
 	}
 
 	/**
