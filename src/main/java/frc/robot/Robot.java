@@ -22,6 +22,7 @@ import frc.robot.systems.DriveFSMSystem;
 
 // Local
 import frc.robot.vision.Vision;
+import frc.robot.vision.VisionIOLimelight;
 import frc.robot.vision.VisionIOPhotonPoseEstimator;
 import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
 import frc.robot.vision.VisionIOPhotonVision;
@@ -91,8 +92,8 @@ public class Robot extends LoggedRobot {
 					vision = new Vision(
 						driveSystem::addVisionMeasurement,
 						() -> driveSystem.getPose().getRotation(),
-						new VisionIOPhotonVision("limelight-reef", ROBOT_TO_REEF_CAM),
-						new VisionIOPhotonVision("limelight-station", ROBOT_TO_STATION_CAM));
+						new VisionIOLimelight("limelight", () -> driveSystem.getDrivetrain().getPigeon2().getRotation2d())
+					);
 				}
 			} else {
 				if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
