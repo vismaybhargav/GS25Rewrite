@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.generated.VisionIOInputsAutoLogged;
+import frc.robot.vision.VisionIO.PoseObservationType;
 
 import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_BASELINE;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
+import frc.robot.Features;
 
 public class Vision extends SubsystemBase {
 	private final VisionConsumer visionConsumer;
@@ -99,12 +101,15 @@ public class Vision extends SubsystemBase {
 		List<Pose3d> allRobotPoses = new LinkedList<>();
 		List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
 		List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+		List<Pose3d> allMT1Poses = new LinkedList<>();
+		List<Pose3d> allMT2Poses = new LinkedList<>();
 
 		List<Pose3d> tagPoses = new LinkedList<>();
 		List<Pose3d> robotPoses = new LinkedList<>();
 		List<Pose3d> robotPosesAccepted = new LinkedList<>();
 		List<Pose3d> robotPosesRejected = new LinkedList<>();
-
+		List<Pose3d> mt1Poses = new LinkedList<>();
+		List<Pose3d> mt2Poses = new LinkedList<>();
 
 		// Loop over cameras
 		for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
@@ -115,6 +120,11 @@ public class Vision extends SubsystemBase {
 			robotPoses.clear();
 			robotPosesAccepted.clear();
 			robotPosesRejected.clear();
+
+			if (Features.USE_LIMELIGHT) {
+				mt1Poses.clear();
+				mt2Poses.clear();
+			}
 
 			// Add tag poses
 			for (int tagId : inputs[cameraIndex].tagIds) {
@@ -136,12 +146,19 @@ public class Vision extends SubsystemBase {
 										.getRadians()) > VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians))
 						// Must have realistic Z coordinate
 						|| Math.abs(observation.pose().getZ()) > MAX_Z_ERROR
-
 						// Must be within the field boundaries
 						|| observation.pose().getX() < -FIELD_BORDER_MARGIN
 						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN
 						|| observation.pose().getY() < -FIELD_BORDER_MARGIN
 						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN;
+
+				if (Features.USE_LIMELIGHT) {
+					if (observation.type() == PoseObservationType.MEGATAG_1) {
+						mt1Poses.add(observation.pose());
+					} else if (observation.type() == PoseObservationType.MEGATAG_2) {
+						mt2Poses.add(observation.pose());
+					}
+				}
 
 				// Add pose to log
 				robotPoses.add(observation.pose());
@@ -186,10 +203,20 @@ public class Vision extends SubsystemBase {
 			Logger.recordOutput(
 					"Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesRejected",
 					robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
+			Logger.recordOutput(
+				"Vision/Camera" + Integer.toString(cameraIndex) + "/MegaTag 1 Poses",
+				mt1Poses.toArray(new Pose3d[mt1Poses.size()]));
+			Logger.recordOutput(
+				"Vision/Camera" + Integer.toString(cameraIndex) + "/MegaTag 2 Poses",
+				mt2Poses.toArray(new Pose3d[mt2Poses.size()]));
 			allTagPoses.addAll(tagPoses);
 			allRobotPoses.addAll(robotPoses);
 			allRobotPosesAccepted.addAll(robotPosesAccepted);
 			allRobotPosesRejected.addAll(robotPosesRejected);
+			if (Features.USE_LIMELIGHT) {
+				allMT1Poses.addAll(mt1Poses);
+				allMT2Poses.addAll(mt2Poses);
+			}
 		}
 
 		// Log summary data
@@ -204,6 +231,12 @@ public class Vision extends SubsystemBase {
 		Logger.recordOutput(
 				"Vision/Summary/RobotPosesRejected",
 				allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+		Logger.recordOutput(
+			"Vision/Summary/MegaTag 1 Poses",
+			allMT1Poses.toArray(new Pose3d[allMT1Poses.size()]));
+		Logger.recordOutput(
+			"Vision/Summary/MegaTag 2 Poses",
+			allMT2Poses.toArray(new Pose3d[allMT2Poses.size()]));
 	}
 
 	@FunctionalInterface

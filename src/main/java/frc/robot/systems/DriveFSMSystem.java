@@ -17,7 +17,6 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
-import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
@@ -34,7 +33,6 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.Features;
-import frc.robot.Robot;
 
 // WPILib Imports
 
@@ -122,8 +120,6 @@ public class DriveFSMSystem {
 		Math.pow(MAX_ANGULAR_RATE.in(RadiansPerSecond), 2)
 	);
 
-	private double lastSimTime;
-
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
 
@@ -150,10 +146,6 @@ public class DriveFSMSystem {
 		PathPlannerLogging.setLogTargetPoseCallback((targPose) -> {
 			Logger.recordOutput("PathPlanner/Target Pose", targPose);
 		});
-
-		if (Robot.isSimulation()) {
-			lastSimTime = Utils.getCurrentTimeSeconds();
-		}
 
 		// Reset state machine
 		reset();
@@ -273,6 +265,10 @@ public class DriveFSMSystem {
 
 		finish = true;  // Resets the pathfinding, so that we
 						// re-initialize when going into the pathfinding state.
+
+		if (input.isSeedButtonPressed()) {
+			drivetrain.seedFieldCentric();
+		}
 
 		double xSpeed = MathUtil.applyDeadband(
 			-input.getDriveLeftJoystickY(),
@@ -576,6 +572,10 @@ public class DriveFSMSystem {
 				.orElse(new Pose3d())} : new Pose3d[]{};
 	}
 
+	/**
+	 * Get the drivetrain.
+	 * @return 	the drivetrain
+	 */
 	public CommandSwerveDrivetrain getDrivetrain() {
 		return drivetrain;
 	}
