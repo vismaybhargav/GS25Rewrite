@@ -104,8 +104,8 @@ public class Constants {
 		static {
 			AprilTagFieldLayout layout;
 			try {
-				layout = Features.USE_TEST_FIELD ? new AprilTagFieldLayout(Filesystem.
-					getDeployDirectory() + "/gs-test-field.json") : AprilTagFieldLayout .loadField(AprilTagFields.k2025ReefscapeWelded);
+				layout = Features.USE_TEST_FIELD && !Robot.isSimulation() ? new AprilTagFieldLayout(Filesystem.
+					getDeployDirectory() + "/gs-test-field.json") : AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 			} catch (IOException e) {
 				System.out.println("Could not find test field, defaulting to reefscape welded field.");
 				layout = AprilTagFieldLayout
