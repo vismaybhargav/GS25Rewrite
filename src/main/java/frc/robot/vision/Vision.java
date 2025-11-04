@@ -128,12 +128,26 @@ public class Vision extends SubsystemBase {
 
 			// Add tag poses
 			for (int tagId : inputs[cameraIndex].tagIds) {
+				System.out.println("Tag ID: " + tagId);
 				var tagPose = TAG_LAYOUT.getTagPose(tagId);
 				tagPose.ifPresent(tagPoses::add);
+				System.out.println("Tag Pose: " + tagPose);
 			}
-
+			System.out.println(tagPoses);
+			
 			// Loop over pose observations
 			for (var observation : inputs[cameraIndex].poseObservations) {
+				System.out.println("Ambiguity: " + observation.ambiguity());
+				System.out.println("Rotation Ambiguity: " + Math.abs(
+					rotatonSupplier
+						.get()
+						.minus(observation.pose().toPose2d().getRotation())
+						.getRadians()) + " vs max rotation ambiguity of " + VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
+				System.out.println("Z Error: " + observation.pose().getZ() + " vs max Z error of " + MAX_Z_ERROR);
+				System.out.println("X: " + observation.pose().getX() + ", Y: " + observation.pose().getY());
+				System.out.println("Max X: " + (TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN) + ", Max Y: " + (TAG_LAYOUT.getFieldWidth() + FIELD_BORDER_MARGIN));
+				System.out.println("Min X: " + (-FIELD_BORDER_MARGIN) + ", Min Y: " + (-FIELD_BORDER_MARGIN));
+				
 				// Check whether to reject pose
 				boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
 						|| (observation.tagCount() == 1
