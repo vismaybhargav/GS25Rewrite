@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.generated.LimelightHelpers;
 import frc.robot.vision.VisionIO.PoseObservation;
 
+import org.littletonrobotics.junction.Logger;
+
 public class VisionIOLimelight implements VisionIO {
 	private String limelightName;
 	private final Supplier<Rotation2d> rotationSupplier;
@@ -49,7 +51,10 @@ public class VisionIOLimelight implements VisionIO {
 		// TODO: cleanup
 		AtomicInteger i = new AtomicInteger(0);
 		var ids = new int[tagIds.size()];
+		
+
 		tagIds.forEach(id -> ids[i.getAndIncrement()] = id);
+		Logger.recordOutput("tagIds", ids);
 
 		inputs.tagIds = ids;
 

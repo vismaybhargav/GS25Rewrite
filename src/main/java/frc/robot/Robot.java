@@ -7,6 +7,8 @@ import static frc.robot.Constants.VisionConstants.REEF_CAMERA_NAME;
 import static frc.robot.Constants.VisionConstants.ROBOT_TO_REEF_CAM;
 import static frc.robot.Constants.VisionConstants.ROBOT_TO_STATION_CAM;
 import static frc.robot.Constants.VisionConstants.STATION_CAMERA_NAME;
+import static frc.robot.Constants.VisionConstants.TAG_ID_TEST_REEF_LEFT;
+import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -15,6 +17,9 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.Constants.VisionConstants;
 // WPILib Imports
 import frc.robot.systems.DriveFSMSystem;
 
@@ -184,5 +189,14 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotPeriodic() {
 		vision.periodic();
+
+		Logger.recordOutput("Field Bounding Box",
+		new Pose2d[] {
+			new Pose2d(0, 0, new Rotation2d()),
+			new Pose2d(0, TAG_LAYOUT.getFieldLength(), new Rotation2d()),
+			new Pose2d(TAG_LAYOUT.getFieldWidth(), TAG_LAYOUT.getFieldLength(), new Rotation2d()),
+			new Pose2d(TAG_LAYOUT.getFieldWidth(), 0, new Rotation2d()),
+		} 
+		);
 	}
 }

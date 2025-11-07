@@ -144,5 +144,7 @@ public class Constants {
 		};
 
 		public static final double FIELD_BORDER_MARGIN = 0.5;
+		public static final double FIELD_LENGTH = 17.5483;
+		public static final double FIELD_WIDTH = 8.0519;
 	}
 }

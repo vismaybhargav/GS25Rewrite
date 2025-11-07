@@ -1,5 +1,6 @@
 package frc.robot.vision;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import limelight.Limelight;
 import limelight.networktables.LimelightPoseEstimator;
 import limelight.networktables.Orientation3d;
 import limelight.networktables.PoseEstimate;
+import limelight.results.RawFiducial;
 import limelight.networktables.LimelightSettings.ImuMode;
 
 public class VisionIOYALL implements VisionIO {
@@ -59,8 +61,10 @@ public class VisionIOYALL implements VisionIO {
 							estimate.rawFiducials.length,
 							estimate.avgTagDist,
 							PoseObservationType.MEGATAG_2));
-				});
 
+					
+				});
+		
 		Optional<PoseEstimate> optEst1 = mt1PoseEstimator.getPoseEstimate();
 		optEst1.ifPresent((PoseEstimate estimate) -> {
 			poseObservations.add(new PoseObservation(
@@ -75,24 +79,44 @@ public class VisionIOYALL implements VisionIO {
 		inputs.poseObservations = poseObservations.toArray(new PoseObservation[0]);
 
 		Set<Integer> tagIds = new HashSet<>();
+		RawFiducial[] data = limelight.getData().getRawFiducials();
+		// if (optEst.isPresent()){
+		// 	RawFiducial[] data = optEst.get().rawFiducials;
+		// 	if(data.length > 0) {
+		// 		inputs.latestTargetObservation = new TargetObservation(Rotation2d.fromDegrees(data[0].txnc), Rotation2d.fromDegrees(data[0].tync));
+		// 	}
+		// 	Arrays.stream(data).forEach(fid -> tagIds.add(fid.id));
+		// }
 
-		limelightResults.ifPresent(results -> {
-			var targets = results.targets_Fiducials;
+		if(data.length > 0) {
+		 	inputs.latestTargetObservation = new TargetObservation(Rotation2d.fromDegrees(data[0].txnc), Rotation2d.fromDegrees(data[0].tync));
+		 }
 
-			if (targets.length == 0) {
-				return;
-			}
-			var firstTarget = targets[0];
+		
 
-			inputs.latestTargetObservation = new TargetObservation(
-					Rotation2d.fromDegrees(firstTarget.tx),
-					Rotation2d.fromDegrees(firstTarget.ty));
 
-			for (var tag : targets) {
-				tagIds.add((int) tag.fiducialID);
-			}
-		});
+		Arrays.stream(data).forEach(fid -> tagIds.add(fid.id));
 
+		// limelightResults.ifPresent(results -> {
+		// 	var targets = results.targets_Fiducials;
+		// 	System.out.println("Targets " + targets);
+		// 	Logger.recordOutput("NumberOfTargets", targets.length);
+
+
+		// 	if (targets.length == 0) {
+		// 		return;
+		// 	}
+		// 	var firstTarget = targets[0];
+
+		// 	inputs.latestTargetObservation = new TargetObservation(
+		// 			Rotation2d.fromDegrees(firstTarget.tx),
+		// 			Rotation2d.fromDegrees(firstTarget.ty));
+
+		// 	for (var tag : targets) {
+		// 		Logger.recordOutput("tag"+ tag.fiducialID, (int)tag.fiducialID);
+		// 		tagIds.add((int) tag.fiducialID);
+		// 	}
+		// });
 		inputs.tagIds = tagIds.stream().mapToInt(Integer::intValue).toArray();
 	}
 }

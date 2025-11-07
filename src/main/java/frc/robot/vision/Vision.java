@@ -36,6 +36,7 @@ import static frc.robot.Constants.VisionConstants.MAX_AMBIGUITY;
 import static frc.robot.Constants.VisionConstants.MAX_Z_ERROR;
 import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 import static frc.robot.Constants.VisionConstants.FIELD_BORDER_MARGIN;
+import static frc.robot.Constants.VisionConstants.FIELD_LENGTH;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -127,26 +128,32 @@ public class Vision extends SubsystemBase {
 			}
 
 			// Add tag poses
+			Logger.recordOutput("Tag IDS detected (list): ", inputs[cameraIndex].tagIds);
 			for (int tagId : inputs[cameraIndex].tagIds) {
-				System.out.println("Tag ID: " + tagId);
 				var tagPose = TAG_LAYOUT.getTagPose(tagId);
-				tagPose.ifPresent(tagPoses::add);
-				System.out.println("Tag Pose: " + tagPose);
+				var updatePose = new Pose3d(tagPose.get().getY(), tagPose.get().getX() + FIELD_LENGTH/2, tagPose.get().getZ(), tagPose.get().getRotation());
+				tagPoses.add(updatePose)
 			}
-			System.out.println(tagPoses);
+			
+			
 			
 			// Loop over pose observations
 			for (var observation : inputs[cameraIndex].poseObservations) {
-				System.out.println("Ambiguity: " + observation.ambiguity());
-				System.out.println("Rotation Ambiguity: " + Math.abs(
+				Logger.recordOutput("Observation Tag Count", observation.tagCount());
+				Logger.recordOutput("Boolean Condition 1", observation.tagCount() == 1
+				&& observation.ambiguity() > MAX_AMBIGUITY
+				&& Math.abs(
 					rotatonSupplier
 						.get()
 						.minus(observation.pose().toPose2d().getRotation())
-						.getRadians()) + " vs max rotation ambiguity of " + VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
-				System.out.println("Z Error: " + observation.pose().getZ() + " vs max Z error of " + MAX_Z_ERROR);
-				System.out.println("X: " + observation.pose().getX() + ", Y: " + observation.pose().getY());
-				System.out.println("Max X: " + (TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN) + ", Max Y: " + (TAG_LAYOUT.getFieldWidth() + FIELD_BORDER_MARGIN));
-				System.out.println("Min X: " + (-FIELD_BORDER_MARGIN) + ", Min Y: " + (-FIELD_BORDER_MARGIN));
+						.getRadians()) > VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
+				Logger.recordOutput("Boolean Condition 2", Math.abs(observation.pose().getZ()) > MAX_Z_ERROR);
+				Logger.recordOutput("Boolean Condition 3", observation.pose().getX() < -FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Boolean Condition 4", observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Max X", TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Boolean Condition 5", observation.pose().getY() < -FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Boolean Condition 6", observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN);
+
 				
 				// Check whether to reject pose
 				boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
@@ -162,15 +169,40 @@ public class Vision extends SubsystemBase {
 						|| Math.abs(observation.pose().getZ()) > MAX_Z_ERROR
 						// Must be within the field boundaries
 						|| observation.pose().getX() < -FIELD_BORDER_MARGIN
-						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN
+						|| observation.pose().getX() > TAG_LAYOUT.getFieldWidth() + FIELD_BORDER_MARGIN
 						|| observation.pose().getY() < -FIELD_BORDER_MARGIN
-						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN;
+						|| observation.pose().getY() > TAG_LAYOUT.getFieldLength() +  FIELD_BORDER_MARGIN;
 
 				if (Features.USE_LIMELIGHT) {
 					if (observation.type() == PoseObservationType.MEGATAG_1) {
 						mt1Poses.add(observation.pose());
+						Logger.recordOutput("MegaTag 1 Ambiguity", observation.ambiguity());
+						Logger.recordOutput("MegaTag 1 Max Ambiguity", MAX_AMBIGUITY);
+						Logger.recordOutput("MegaTag 1 Rotational Ambiguity", Math.abs(
+							rotatonSupplier
+								.get()
+								.minus(observation.pose().toPose2d().getRotation())
+								.getRadians()));
+						Logger.recordOutput("MegaTag 1 Max Rotational Ambiguity", VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
+						Logger.recordOutput("MegaTag 1 Z Error", observation.pose().getZ());
+						Logger.recordOutput("MegaTag 1 Max Z Error", MAX_Z_ERROR);
+						Logger.recordOutput("MegaTag 1 X Position", observation.pose().getX());
+						Logger.recordOutput("MegaTag 1 Y Position", observation.pose().getY());
+						
 					} else if (observation.type() == PoseObservationType.MEGATAG_2) {
 						mt2Poses.add(observation.pose());
+						Logger.recordOutput("MegaTag 2 Ambiguity", observation.ambiguity());
+						Logger.recordOutput("MegaTag 2 Max Ambiguity", MAX_AMBIGUITY);
+						Logger.recordOutput("MegaTag 2 Rotational Ambiguity", Math.abs(
+							rotatonSupplier
+								.get()
+								.minus(observation.pose().toPose2d().getRotation())
+								.getRadians()));
+						Logger.recordOutput("MegaTag 2 Max Rotational Ambiguity", VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
+						Logger.recordOutput("MegaTag 2 Z Error", observation.pose().getZ());
+						Logger.recordOutput("MegaTag 2 Max Z Error", MAX_Z_ERROR);
+						Logger.recordOutput("MegaTag 2 X Position", observation.pose().getX());
+						Logger.recordOutput("MegaTag 2 Y Position", observation.pose().getY());
 					}
 				}
 
