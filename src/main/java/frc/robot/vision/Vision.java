@@ -37,6 +37,7 @@ import static frc.robot.Constants.VisionConstants.MAX_Z_ERROR;
 import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 import static frc.robot.Constants.VisionConstants.FIELD_BORDER_MARGIN;
 import static frc.robot.Constants.VisionConstants.FIELD_LENGTH;
+import static frc.robot.Constants.VisionConstants.FIELD_WIDTH;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -131,8 +132,8 @@ public class Vision extends SubsystemBase {
 			Logger.recordOutput("Tag IDS detected (list): ", inputs[cameraIndex].tagIds);
 			for (int tagId : inputs[cameraIndex].tagIds) {
 				var tagPose = TAG_LAYOUT.getTagPose(tagId);
-				var updatePose = new Pose3d(tagPose.get().getY(), tagPose.get().getX() + FIELD_LENGTH/2, tagPose.get().getZ(), tagPose.get().getRotation());
-				tagPoses.add(updatePose)
+				var updatePose = new Pose3d(tagPose.get().getX() + TAG_LAYOUT.getFieldLength()/2, tagPose.get().getY() + TAG_LAYOUT.getFieldWidth()/2, tagPose.get().getZ(), tagPose.get().getRotation());
+				tagPoses.add(updatePose);
 			}
 			
 			
@@ -169,9 +170,9 @@ public class Vision extends SubsystemBase {
 						|| Math.abs(observation.pose().getZ()) > MAX_Z_ERROR
 						// Must be within the field boundaries
 						|| observation.pose().getX() < -FIELD_BORDER_MARGIN
-						|| observation.pose().getX() > TAG_LAYOUT.getFieldWidth() + FIELD_BORDER_MARGIN
+						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN
 						|| observation.pose().getY() < -FIELD_BORDER_MARGIN
-						|| observation.pose().getY() > TAG_LAYOUT.getFieldLength() +  FIELD_BORDER_MARGIN;
+						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN;
 
 				if (Features.USE_LIMELIGHT) {
 					if (observation.type() == PoseObservationType.MEGATAG_1) {
