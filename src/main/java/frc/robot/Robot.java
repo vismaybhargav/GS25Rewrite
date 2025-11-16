@@ -18,6 +18,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants.VisionConstants;
 // WPILib Imports
@@ -33,6 +34,8 @@ import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
 import frc.robot.vision.VisionIOPhotonVision;
 import frc.robot.vision.VisionIOPhotonVisionSim;
 import frc.robot.vision.VisionIOYALL;
+import gg.questnav.questnav.QuestNav;
+import gg.questnav.questnav.PoseFrame;
 import limelight.networktables.Orientation3d;
 
 /**
@@ -45,6 +48,7 @@ public class Robot extends LoggedRobot {
 	// Systems
 	private DriveFSMSystem driveSystem;
 	private Vision vision;
+	private QuestNav questNav;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -76,64 +80,8 @@ public class Robot extends LoggedRobot {
 		// Instantiate all systems here
 		driveSystem = new DriveFSMSystem();
 
-		if (isReal()) {
-			if (Features.USE_LIMELIGHT) {
-				if (Features.USE_YALL) {
-					vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						() -> driveSystem.getPose().getRotation(),
-						new VisionIOYALL("limelight",
-							() -> {
-								var pigeon = driveSystem.getDrivetrain().getPigeon2();
-								return new Orientation3d(
-									pigeon.getRotation3d(),
-									pigeon.getAngularVelocityZDevice().getValue(),
-									pigeon.getAngularVelocityYDevice().getValue(),
-									pigeon.getAngularVelocityXDevice().getValue()
-								);
-							}
-						));
-				} else {
-					vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						() -> driveSystem.getPose().getRotation(),
-						new VisionIOLimelight("limelight", () -> driveSystem.getDrivetrain().getPigeon2().getRotation2d())
-					);
-				}
-			} else {
-				if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
-					vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						() -> driveSystem.getPose().getRotation(),
-						new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-						new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
-				} else {
-					vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						() -> driveSystem.getPose().getRotation(),
-						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
-				}
-			}
-		} else {
-			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
-				vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						() -> driveSystem.getPose().getRotation(),
-						new VisionIOPhotonPoseEstimatorSim(
-								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
-						new VisionIOPhotonPoseEstimatorSim(
-								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
-			} else {
-				vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						() -> driveSystem.getPose().getRotation(),
-						new VisionIOPhotonVisionSim(
-								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
-						new VisionIOPhotonVisionSim(
-								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
-			}
-		}
+		questNav = new QuestNav();
+		questNav.setPose(new Pose2d());
 	}
 
 	@Override
@@ -188,7 +136,32 @@ public class Robot extends LoggedRobot {
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
 	public void robotPeriodic() {
-		vision.periodic();
+		questNav.commandPeriodic();
+		//vision.periodic();
+
+		if (questNav.isTracking()) {
+		// Get the latest pose data frames from the Quest
+			PoseFrame[] questFrames = questNav.getAllUnreadPoseFrames();
+
+			// Loop over the pose data frames and send them to the pose estimator
+			for (PoseFrame questFrame : questFrames) {
+				// Get the pose of the Quest
+				Pose2d questPose = questFrame.questPose();
+				Logger.recordOutput("questnav pose", questPose);
+				// Get timestamp for when the data was sent
+				double timestamp = questFrame.dataTimestamp();
+
+				// Transform by the mount pose to get your robot pose
+				//Pose3d robotPose = questPose.transformBy(Constants.VisionConstants.ROBOT_TO_QUEST.inverse());
+
+				// You can put some sort of filtering here if you would like!
+
+				// Add the measurement to our estimator
+				//driveSystem.addVisionMeasurement(robotPose.toPose2d(), timestamp, Constants.VisionConstants.QUESTNAV_STD_DIVS);
+			}
+
+		}
+
 
 		Logger.recordOutput("Field Bounding Box",
 		new Pose2d[] {

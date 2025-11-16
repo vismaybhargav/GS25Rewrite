@@ -12,8 +12,12 @@ import java.io.IOException;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -146,5 +150,12 @@ public class Constants {
 		public static final double FIELD_BORDER_MARGIN = 0.5;
 		public static final double FIELD_LENGTH = 17.5483;
 		public static final double FIELD_WIDTH = 8.0519;
+
+		public static final Transform3d ROBOT_TO_QUEST = new Transform3d(); //Not actually 000 but whatever for now
+		public static final Matrix<N3, N1> QUESTNAV_STD_DIVS = VecBuilder.fill(
+			0.02, // Trust down to 2cm in X direction
+			0.02, // Trust down to 2cm in Y direction
+			0.035 // Trust down to 2 degrees rotational
+		);
 	}
 }
