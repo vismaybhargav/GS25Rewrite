@@ -52,24 +52,8 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
 			SmartDashboard.putData(visionSystemSim.getDebugField());
 		}
 
-		var cameraProps = new SimCameraProperties();
-		cameraProps.setFPS(SimConstants.CAM_FPS);
 
-		if ("Reef_Camera".equals(name)) {
-			cameraProps.setCalibration(
-				SimConstants.CAM_RES_WIDTH_PIX,
-				SimConstants.CAM_RES_HEIGHT_PIX,
-				SimConstants.REEF_CAMERA_CALIBRATION,
-				SimConstants.REEF_CAMERA_DISTORTION
-			);
-		} else if ("Source_Camera".equals(name)) {
-			cameraProps.setCalibration(
-				SimConstants.CAM_RES_WIDTH_PIX,
-				SimConstants.CAM_RES_HEIGHT_PIX,
-				SimConstants.STATION_CAMERA_CALIBRATION,
-				SimConstants.STATION_CAMERA_DISTORTION
-			);
-		}
+		var cameraProps = SimCameraProperties.LL2_640_480();
 
 		cameraSim = new PhotonCameraSim(getCamera(), cameraProps, TAG_LAYOUT);
 		visionSystemSim.addCamera(cameraSim, robotToCamera);
