@@ -28,6 +28,28 @@ public final /* singleton */ class FieldHelper {
 		LEFT, RIGHT
 	}
 
+	private static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
+
+	public static final int TAG_ID_REEF_SIDE_A = 18;
+	public static final int TAG_ID_REEF_SIDE_B = 17;
+	public static final int TAG_ID_REEF_SIDE_C = 22;
+	public static final int TAG_ID_REEF_SIDE_D = 21;
+	public static final int TAG_ID_REEF_SIDE_E = 20;
+	public static final int TAG_ID_REEF_SIDE_F = 19;
+
+	public enum StationSide {
+		LEFT, RIGHT
+	}
+
+	public enum StationPosition {
+		FAR_LEFT, LEFT, CENTER, RIGHT, FAR_RIGHT
+	}
+
+	private static Map<StationSide, AprilTag> stationAprilTags = new HashMap<>();
+
+	public static final int TAG_ID_STATION_LEFT = 1;
+	public static final int TAG_ID_STATION_RIGHT = 2;
+
 	public enum StartingPose {
 		RED_1(RED_1_STARTING_POS_M),
 		RED_2(RED_2_STARTING_POS_M),
@@ -44,6 +66,7 @@ public final /* singleton */ class FieldHelper {
 
 		/**
 		 * Gets the pose.
+		 *
 		 * @return the pose
 		 */
 		public Pose2d getPose() {
@@ -51,80 +74,77 @@ public final /* singleton */ class FieldHelper {
 		}
 	}
 
-	private static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
-
-	public static final int TAG_ID_REEF_SIDE_A = 18;
-	public static final int TAG_ID_REEF_SIDE_B = 17;
-	public static final int TAG_ID_REEF_SIDE_C = 22;
-	public static final int TAG_ID_REEF_SIDE_D = 21;
-	public static final int TAG_ID_REEF_SIDE_E = 20;
-	public static final int TAG_ID_REEF_SIDE_F = 19;
-
 	public static final Pose2d BLUE_1_STARTING_POS_M = new Pose2d(
-		7.5856494,
-		6.4390466,
-		new Rotation2d(Math.PI)
-	);
+			7.5856494,
+			6.4390466,
+			new Rotation2d(Math.PI));
 
 	public static final Pose2d BLUE_2_STARTING_POS_M = new Pose2d(
-		7.5856494,
-		4.0468566,
-		new Rotation2d(Math.PI)
-	);
+			7.5856494,
+			4.0468566,
+			new Rotation2d(Math.PI));
 
 	public static final Pose2d BLUE_3_STARTING_POS_M = new Pose2d(
-		7.5856494,
-		1.5596578,
-		new Rotation2d(Math.PI)
-	);
+			7.5856494,
+			1.5596578,
+			new Rotation2d(Math.PI));
 
 	public static final Pose2d RED_1_STARTING_POS_M = new Pose2d(
-		9.972452163696289,
-		1.5596578,
-		new Rotation2d()
-	);
+			9.972452163696289,
+			1.5596578,
+			new Rotation2d());
 	public static final Pose2d RED_2_STARTING_POS_M = new Pose2d(
-		9.972452163696289,
-		4.0468566,
-		new Rotation2d()
-	);
+			9.972452163696289,
+			4.0468566,
+			new Rotation2d());
 	public static final Pose2d RED_3_STARTING_POS_M = new Pose2d(
-		9.972452163696289,
-		6.4390466,
-		new Rotation2d()
-	);
+			9.972452163696289,
+			6.4390466,
+			new Rotation2d());
 
 	static {
 		reefAprilTags.put(
-			ReefSide.A,
-			new AprilTag(
-				TAG_ID_REEF_SIDE_A,
-				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_A).orElse(null)));
+				ReefSide.A,
+				new AprilTag(
+						TAG_ID_REEF_SIDE_A,
+						TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_A).orElse(null)));
 		reefAprilTags.put(
-			ReefSide.B,
-			new AprilTag(
-				TAG_ID_REEF_SIDE_B,
-				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_B).orElse(null)));
+				ReefSide.B,
+				new AprilTag(
+						TAG_ID_REEF_SIDE_B,
+						TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_B).orElse(null)));
 		reefAprilTags.put(
-			ReefSide.C,
-			new AprilTag(
-				TAG_ID_REEF_SIDE_C,
-				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_C).orElse(null)));
+				ReefSide.C,
+				new AprilTag(
+						TAG_ID_REEF_SIDE_C,
+						TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_C).orElse(null)));
 		reefAprilTags.put(
-			ReefSide.D,
-			new AprilTag(
-				TAG_ID_REEF_SIDE_D,
-				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_D).orElse(null)));
+				ReefSide.D,
+				new AprilTag(
+						TAG_ID_REEF_SIDE_D,
+						TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_D).orElse(null)));
 		reefAprilTags.put(
-			ReefSide.E,
-			new AprilTag(
-				TAG_ID_REEF_SIDE_E,
-				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_E).orElse(null)));
+				ReefSide.E,
+				new AprilTag(
+						TAG_ID_REEF_SIDE_E,
+						TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_E).orElse(null)));
 		reefAprilTags.put(
-			ReefSide.F,
-			new AprilTag(
-				TAG_ID_REEF_SIDE_F,
-				TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_F).orElse(null)));
+				ReefSide.F,
+				new AprilTag(
+						TAG_ID_REEF_SIDE_F,
+						TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_F).orElse(null)));
+
+		stationAprilTags.put(
+				StationSide.LEFT,
+				new AprilTag(
+						TAG_ID_STATION_LEFT,
+						TAG_LAYOUT.getTagPose(TAG_ID_STATION_LEFT).orElse(null)));
+
+		stationAprilTags.put(
+				StationSide.RIGHT,
+				new AprilTag(
+						TAG_ID_STATION_RIGHT,
+						TAG_LAYOUT.getTagPose(TAG_ID_STATION_RIGHT).orElse(null)));
 	}
 
 	private FieldHelper() {
@@ -133,7 +153,8 @@ public final /* singleton */ class FieldHelper {
 
 	/**
 	 * Gets the desired pose for the robot to be aligned with the reef.
-	 * @param reefSide the side of the reef
+	 *
+	 * @param reefSide   the side of the reef
 	 * @param branchSide the side of the branch
 	 * @return the desired pose for the robot to be aligned with the reef
 	 */
@@ -141,18 +162,18 @@ public final /* singleton */ class FieldHelper {
 		Pose2d atPose = reefAprilTags.get(reefSide).pose.toPose2d();
 
 		Transform2d offsetTransform = new Transform2d(
-			SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
-			branchSide == BranchSide.LEFT
-				? AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters)
-				: AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
-			Rotation2d.k180deg
-		);
+				SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
+				branchSide == BranchSide.LEFT
+						? AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters)
+						: AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
+				Rotation2d.k180deg);
 
 		return atPose.transformBy(offsetTransform);
 	}
 
 	/**
 	 * Get a map of the reef april tags.
+	 *
 	 * @return a map of the reef april tags
 	 */
 	public static Map<ReefSide, AprilTag> getReefAprilTags() {
@@ -189,35 +210,13 @@ public final /* singleton */ class FieldHelper {
 					throw new IllegalArgumentException("Invalid location: " + location);
 			}
 		}
-	public enum StationSide {
-		LEFT, RIGHT
 	}
 
-	public enum StationPosition {
-		FAR_LEFT, LEFT, CENTER, RIGHT, FAR_RIGHT
-	}
 
-	private static Map<StationSide, AprilTag> stationAprilTags = new HashMap<>();
-
-	public static final int TAG_ID_STATION_LEFT = 1;
-	public static final int TAG_ID_STATION_RIGHT = 2;
-
-	static {
-		stationAprilTags.put(
-			StationSide.LEFT,
-			new AprilTag(
-				TAG_ID_STATION_LEFT,
-				TAG_LAYOUT.getTagPose(TAG_ID_STATION_LEFT).orElse(null)));
-
-		stationAprilTags.put(
-			StationSide.RIGHT,
-			new AprilTag(
-				TAG_ID_STATION_RIGHT,
-				TAG_LAYOUT.getTagPose(TAG_ID_STATION_RIGHT).orElse(null)));
-	}
 
 	/**
 	 * Get a map of the station april tags.
+	 *
 	 * @return a map of the station april tags
 	 */
 	public static Map<StationSide, AprilTag> getStationAprilTags() {
@@ -226,17 +225,18 @@ public final /* singleton */ class FieldHelper {
 
 	/**
 	 * Gets the desired pose for the robot to be aligned with the station.
-	 * @param stationSide the side of the station
+	 *
+	 * @param stationSide     the side of the station
 	 * @param stationPosition The position on the station
 	 * @return the desired pose for the robot to be aligned with the station
 	 */
 	public static Pose2d getAlignedDesiredPoseForStation(StationSide stationSide,
-		StationPosition stationPosition) {
+			StationPosition stationPosition) {
 
 		Pose2d atPose = stationAprilTags.get(stationSide).pose.toPose2d();
-		
+
 		Distance yOffset;
-		switch(stationPosition) {
+		switch (stationPosition) {
 			case FAR_LEFT:
 				yOffset = AutoConstants.STATION_FAR_LEFT_OFFSET;
 				break;
@@ -254,10 +254,9 @@ public final /* singleton */ class FieldHelper {
 		}
 
 		Transform2d offsetTransform = new Transform2d(
-			SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
-			yOffset.in(Meters), // Side to Side
-			Rotation2d.k180deg
-		);
+				SimConstants.ROBOT_WIDTH.in(Meters) / 2, // Back to Front (Don't change this one)
+				yOffset.in(Meters), // Side to Side
+				Rotation2d.k180deg);
 
 		return atPose.transformBy(offsetTransform);
 	}
