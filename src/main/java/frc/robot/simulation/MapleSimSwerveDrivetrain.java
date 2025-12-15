@@ -11,7 +11,6 @@ import com.ctre.phoenix6.sim.Pigeon2SimState;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
@@ -71,7 +70,7 @@ public class MapleSimSwerveDrivetrain {
 						Meters.of(moduleConstants[0].WheelRadius),
 						KilogramSquareMeters.of(moduleConstants[0].SteerInertia),
 						config.getWheelCOF()));
-		mapleSimDrive = new SwerveDriveSimulation(simulationConfig, new Pose2d());
+		mapleSimDrive = new SwerveDriveSimulation(simulationConfig, config.getStartingPose());
 
 		SwerveModuleSimulation[] moduleSimulations = mapleSimDrive.getModules();
 		for (int i = 0; i < this.simModules.length; i++) {

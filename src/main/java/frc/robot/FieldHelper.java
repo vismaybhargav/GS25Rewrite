@@ -10,6 +10,7 @@ import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SimConstants;
 
@@ -26,6 +27,29 @@ public final /* singleton */ class FieldHelper {
 		LEFT, RIGHT
 	}
 
+	public enum StartingPose {
+		RED_1(RED_1_STARTING_POS_M),
+		RED_2(RED_2_STARTING_POS_M),
+		RED_3(RED_3_STARTING_POS_M),
+		BLUE_1(BLUE_1_STARTING_POS_M),
+		BLUE_2(BLUE_2_STARTING_POS_M),
+		BLUE_3(BLUE_3_STARTING_POS_M);
+
+		private final Pose2d pose;
+
+		StartingPose(Pose2d thePose) {
+			pose = thePose;
+		}
+
+		/**
+		 * Gets the pose.
+		 * @return the pose
+		 */
+		public Pose2d getPose() {
+			return pose;
+		}
+	}
+
 	private static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
 
 	public static final int TAG_ID_REEF_SIDE_A = 18;
@@ -34,6 +58,40 @@ public final /* singleton */ class FieldHelper {
 	public static final int TAG_ID_REEF_SIDE_D = 21;
 	public static final int TAG_ID_REEF_SIDE_E = 20;
 	public static final int TAG_ID_REEF_SIDE_F = 19;
+
+	public static final Pose2d BLUE_1_STARTING_POS_M = new Pose2d(
+		7.5856494,
+		6.4390466,
+		new Rotation2d(Math.PI)
+	);
+
+	public static final Pose2d BLUE_2_STARTING_POS_M = new Pose2d(
+		7.5856494,
+		4.0468566,
+		new Rotation2d(Math.PI)
+	);
+
+	public static final Pose2d BLUE_3_STARTING_POS_M = new Pose2d(
+		7.5856494,
+		1.5596578,
+		new Rotation2d(Math.PI)
+	);
+
+	public static final Pose2d RED_1_STARTING_POS_M = new Pose2d(
+		9.972452163696289,
+		1.5596578,
+		new Rotation2d()
+	);
+	public static final Pose2d RED_2_STARTING_POS_M = new Pose2d(
+		9.972452163696289,
+		4.0468566,
+		new Rotation2d()
+	);
+	public static final Pose2d RED_3_STARTING_POS_M = new Pose2d(
+		9.972452163696289,
+		6.4390466,
+		new Rotation2d()
+	);
 
 	static {
 		reefAprilTags.put(
@@ -98,5 +156,37 @@ public final /* singleton */ class FieldHelper {
 	 */
 	public static Map<ReefSide, AprilTag> getReefAprilTags() {
 		return reefAprilTags;
+	}
+
+	/**
+	 * Get the starting pose based on alliance and location.
+	 * @param alliance
+	 * @param location
+	 * @return the starting pose
+	 */
+	public static Pose2d getStartingPose(Alliance alliance, int location) {
+		if (alliance == Alliance.Red) {
+			switch (location) {
+				case 1:
+					return StartingPose.RED_1.getPose();
+				case 2:
+					return StartingPose.RED_2.getPose();
+				case 2 + 1:
+					return StartingPose.RED_3.getPose();
+				default:
+					throw new IllegalArgumentException("Invalid location: " + location);
+			}
+		} else {
+			switch (location) {
+				case 1:
+					return StartingPose.BLUE_1.getPose();
+				case 2:
+					return StartingPose.BLUE_2.getPose();
+				case 2 + 1:
+					return StartingPose.BLUE_3.getPose();
+				default:
+					throw new IllegalArgumentException("Invalid location: " + location);
+			}
+		}
 	}
 }

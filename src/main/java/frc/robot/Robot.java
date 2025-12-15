@@ -155,14 +155,14 @@ public class Robot extends LoggedRobot {
 			return;
 		}
 
-		driveSystem.getMapleSimDrivetrain().update();
+		driveSystem.getSimDrivetrain().update();
 		Logger.recordOutput(
-			"Field Simulation/Game Pieces",
+			"Field Simulation/Game Pieces/Coral",
 			SimulatedArena.getInstance().getGamePiecesArrayByType("Coral")
 		);
 
 		Logger.recordOutput(
-			"Field Simulation/Game Pieces",
+			"Field Simulation/Game Pieces/Algae",
 			SimulatedArena.getInstance().getGamePiecesArrayByType("Algae")
 		);
 	}

@@ -72,7 +72,7 @@ public class TeleopInput {
 	 * @return the pathfinding button pressed
 	 */
 	public boolean isPathfindButtonPressed() {
-		return false;
+		return driveController.getBButton();
 	}
 
 	/**

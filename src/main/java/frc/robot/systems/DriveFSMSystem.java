@@ -2,12 +2,14 @@ package frc.robot.systems;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
+
 import static edu.wpi.first.units.Units.Meters;
 
+import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -16,7 +18,9 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
@@ -29,12 +33,12 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.CommandSwerveDrivetrain;
-import frc.robot.Features;
-import frc.robot.Robot;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 // WPILib Imports
+
 
 // Robot Imports
 import frc.robot.TeleopInput;
@@ -48,6 +52,10 @@ import frc.robot.Constants.VisionConstants;
 import frc.robot.FieldHelper.BranchSide;
 import frc.robot.FieldHelper.ReefSide;
 import frc.robot.FieldHelper;
+import frc.robot.CommandSwerveDrivetrain;
+import frc.robot.Features;
+import frc.robot.Robot;
+
 
 public class DriveFSMSystem {
 	/* ======================== Constants ======================== */
@@ -122,7 +130,7 @@ public class DriveFSMSystem {
 		Math.pow(MAX_ANGULAR_RATE.in(RadiansPerSecond), 2)
 	);
 
-	public MapleSimSwerveDrivetrain simDrivetrain;
+	private MapleSimSwerveDrivetrain simDrivetrain;
 
 	// Hardware devices should be owned by one and only one system. They must
 	// be private to their owner system and may not be used elsewhere.
@@ -137,6 +145,11 @@ public class DriveFSMSystem {
 		// Perform hardware init
 		drivetrain = TunerConstants.createDrivetrain();
 
+		var alliance = DriverStation.getAlliance().orElse(Alliance.Red);
+		var location = DriverStation.getLocation().orElse(1);
+
+		Pose2d startingPose = FieldHelper.getStartingPose(alliance, location);
+
 		if (Robot.isSimulation()) {
 			simDrivetrain = new MapleSimSwerveDrivetrain(
 				SimSwerveDrivetrainConfig
@@ -145,10 +158,12 @@ public class DriveFSMSystem {
 					.withModuleLocations(drivetrain.getModuleLocations())
 					.withModules(drivetrain.getModules())
 					.withStartingPose(
-						new Pose2d(3, 3, new Rotation2d())
+						startingPose
 					)
 			);
 		}
+
+		drivetrain.resetPose(startingPose);
 
 		Pathfinding.setPathfinder(new LocalADStarAK());
 
@@ -512,7 +527,7 @@ public class DriveFSMSystem {
 	 */
 	@AutoLogOutput(key = "Odometry/Robot")
 	public Pose2d getPose() {
-		if (Features.MAPLE_SIM_ENABLED) {
+		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			return simDrivetrain.getMapleSimDrive().getSimulatedDriveTrainPose();
 		}
 		return drivetrain.getState().Pose;
@@ -524,7 +539,7 @@ public class DriveFSMSystem {
 	 */
 	@AutoLogOutput(key = "Swerve/Chassis Speeds")
 	public ChassisSpeeds getChassisSpeeds() {
-		if (Features.MAPLE_SIM_ENABLED) {
+		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			return simDrivetrain
 				.getMapleSimDrive()
 				.getDriveTrainSimulatedChassisSpeedsFieldRelative();
@@ -556,6 +571,22 @@ public class DriveFSMSystem {
 	 */
 	@AutoLogOutput(key = "Swerve/Positions")
 	public SwerveModulePosition[] getModulePositions() {
+		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
+			SwerveModuleSimulation[] simModules = simDrivetrain.getMapleSimDrive().getModules();
+			var positions = new SwerveModulePosition[simModules.length];
+
+			for (int i = 0; i < positions.length; i++) {
+				double wheelRotations = simModules[i].getDriveWheelFinalPosition().in(Rotations);
+				double distance =
+					wheelRotations
+					* TunerConstants.WHEEL_RADIUS.times(2 * Math.PI).in(Meters);
+				Rotation2d angle = simModules[i].getSteerAbsoluteFacing();
+
+				positions[i] = new SwerveModulePosition(distance, angle);
+			}
+
+			return positions;
+		}
 		return drivetrain.getState().ModulePositions;
 	}
 
@@ -572,7 +603,7 @@ public class DriveFSMSystem {
 	 * Get the maple sim drivetrain.
 	 * @return the maple sim swerve drivetrain
 	 */
-	public MapleSimSwerveDrivetrain getMapleSimDrivetrain() {
+	public MapleSimSwerveDrivetrain getSimDrivetrain() {
 		return simDrivetrain;
 	}
 
