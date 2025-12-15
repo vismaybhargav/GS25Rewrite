@@ -44,7 +44,7 @@ public class VisionIOPhotonVision implements VisionIO {
 
 	@Override
 	public void updateInputs(VisionIOInputs inputs) {
-		inputs.connected = camera.isConnected();
+		inputs.setConnected(camera.isConnected());
 
 		// Read new camera observations
 		Set<Short> tagIds = new HashSet<>();
@@ -52,12 +52,16 @@ public class VisionIOPhotonVision implements VisionIO {
 		for (var result : camera.getAllUnreadResults()) {
 			// Update latest target observation
 			if (result.hasTargets()) {
-				inputs.latestTargetObservation = new TargetObservation(
+				inputs.setLatestTargetObservation(
+					new TargetObservation(
 						Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-						Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
+						Rotation2d.fromDegrees(result.getBestTarget().getPitch())
+					)
+				);
 			} else {
-				inputs.latestTargetObservation =
-					new TargetObservation(new Rotation2d(), new Rotation2d());
+				inputs.setLatestTargetObservation(
+					new TargetObservation(new Rotation2d(), new Rotation2d())
+				);
 			}
 
 			// Add pose observation
@@ -121,16 +125,16 @@ public class VisionIOPhotonVision implements VisionIO {
 		}
 
 		// Save pose observations to inputs object
-		inputs.poseObservations = new PoseObservation[poseObservations.size()];
+		inputs.setPoseObservations(new PoseObservation[poseObservations.size()]);
 		for (int i = 0; i < poseObservations.size(); i++) {
-			inputs.poseObservations[i] = poseObservations.get(i);
+			inputs.getPoseObservations()[i] = poseObservations.get(i);
 		}
 
 		// Save tag IDs to inputs objects
-		inputs.tagIds = new int[tagIds.size()];
+		inputs.setTagIds(new int[tagIds.size()]);
 		int i = 0;
 		for (int id : tagIds) {
-			inputs.tagIds[i++] = id;
+			inputs.getTagIds()[i++] = id;
 		}
 	}
 

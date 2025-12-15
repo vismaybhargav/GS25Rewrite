@@ -234,9 +234,9 @@ public final /* singleton */ class FieldHelper {
 		StationPosition stationPosition) {
 
 		Pose2d atPose = stationAprilTags.get(stationSide).pose.toPose2d();
-		
+
 		Distance yOffset;
-		switch(stationPosition) {
+		switch (stationPosition) {
 			case FAR_LEFT:
 				yOffset = AutoConstants.STATION_FAR_LEFT_OFFSET;
 				break;
