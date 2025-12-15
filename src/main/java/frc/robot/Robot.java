@@ -8,6 +8,7 @@ import static frc.robot.Constants.VisionConstants.ROBOT_TO_REEF_CAM;
 import static frc.robot.Constants.VisionConstants.ROBOT_TO_STATION_CAM;
 import static frc.robot.Constants.VisionConstants.STATION_CAMERA_NAME;
 
+import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -143,10 +144,28 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void simulationInit() {
 		System.out.println("-------- Simulation Init --------");
+		if (Features.MAPLE_SIM_ENABLED) {
+			SimulatedArena.getInstance().resetFieldForAuto();
+		}
 	}
 
 	@Override
-	public void simulationPeriodic() { }
+	public void simulationPeriodic() {
+		if (!Features.MAPLE_SIM_ENABLED) {
+			return;
+		}
+
+		driveSystem.getSimDrivetrain().update();
+		Logger.recordOutput(
+			"Field Simulation/Game Pieces/Coral",
+			SimulatedArena.getInstance().getGamePiecesArrayByType("Coral")
+		);
+
+		Logger.recordOutput(
+			"Field Simulation/Game Pieces/Algae",
+			SimulatedArena.getInstance().getGamePiecesArrayByType("Algae")
+		);
+	}
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
