@@ -119,11 +119,6 @@ public interface VisionIO {
 			PoseObservationType type) {
 	}
 
-	public static record TagObservation(
-		double timestamp,
-		double distanceToTag,
-		int tagID) {
-	}
 
 	enum PoseObservationType {
 		MEGATAG_1,
