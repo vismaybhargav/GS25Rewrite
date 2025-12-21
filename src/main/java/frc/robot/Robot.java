@@ -7,6 +7,8 @@ import static frc.robot.Constants.VisionConstants.REEF_CAMERA_NAME;
 import static frc.robot.Constants.VisionConstants.ROBOT_TO_REEF_CAM;
 import static frc.robot.Constants.VisionConstants.ROBOT_TO_STATION_CAM;
 import static frc.robot.Constants.VisionConstants.STATION_CAMERA_NAME;
+import static frc.robot.Constants.VisionConstants.TAG_ID_TEST_REEF_LEFT;
+import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -16,6 +18,9 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.Constants.VisionConstants;
 // WPILib Imports
 import frc.robot.systems.DriveFSMSystem;
 
@@ -23,10 +28,13 @@ import frc.robot.systems.DriveFSMSystem;
 
 // Local
 import frc.robot.vision.Vision;
+import frc.robot.vision.VisionIOLimelight;
 import frc.robot.vision.VisionIOPhotonPoseEstimator;
 import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
 import frc.robot.vision.VisionIOPhotonVision;
 import frc.robot.vision.VisionIOPhotonVisionSim;
+import frc.robot.vision.VisionIOYALL;
+import limelight.networktables.Orientation3d;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -70,21 +78,49 @@ public class Robot extends LoggedRobot {
 		driveSystem = new DriveFSMSystem();
 
 		if (isReal()) {
-			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
-				vision = new Vision(
+			if (Features.USE_LIMELIGHT) {
+				if (Features.USE_YALL) {
+					vision = new Vision(
 						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
+						new VisionIOYALL("limelight-four",
+							() -> {
+								var pigeon = driveSystem.getDrivetrain().getPigeon2();
+								return new Orientation3d(
+									pigeon.getRotation3d(),
+									pigeon.getAngularVelocityZDevice().getValue(),
+									pigeon.getAngularVelocityYDevice().getValue(),
+									pigeon.getAngularVelocityXDevice().getValue()
+								);
+							}
+						));
+				} else {
+					vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
+						new VisionIOLimelight("limelight-four", () -> driveSystem.getDrivetrain().getPigeon2().getRotation2d())
+					);
+				}
+			} else {
+				if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+					vision = new Vision(
+						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 						new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
-			} else {
-				vision = new Vision(
+				} else {
+					vision = new Vision(
 						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
 						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+				}
 			}
 		} else {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonPoseEstimatorSim(
 								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
 						new VisionIOPhotonPoseEstimatorSim(
@@ -92,6 +128,7 @@ public class Robot extends LoggedRobot {
 			} else {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonVisionSim(
 								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
 						new VisionIOPhotonVisionSim(
@@ -171,5 +208,14 @@ public class Robot extends LoggedRobot {
 	@Override
 	public void robotPeriodic() {
 		vision.periodic();
+
+		Logger.recordOutput("Field Bounding Box",
+		new Pose2d[] {
+			new Pose2d(0, 0, new Rotation2d()),
+			new Pose2d(0, TAG_LAYOUT.getFieldLength(), new Rotation2d()),
+			new Pose2d(TAG_LAYOUT.getFieldWidth(), TAG_LAYOUT.getFieldLength(), new Rotation2d()),
+			new Pose2d(TAG_LAYOUT.getFieldWidth(), 0, new Rotation2d()),
+		} 
+		);
 	}
 }

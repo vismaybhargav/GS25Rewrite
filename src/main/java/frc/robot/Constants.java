@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
@@ -7,28 +8,35 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.io.IOException;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.Filesystem;
 
 public class Constants {
 	public static final class DriveConstants {
 		public static final int NUM_MODULES = 4;
 		public static final double SYS_ID_VOLT_DAMP = 6;
 
-		public static final double TRANSLATION_DEADBAND = 0.5;
-		public static final double ROTATION_DEADBAND = 0.5;
+		public static final double TRANSLATION_DEADBAND = 0.1;
+		public static final double ROTATION_DEADBAND = 0.1;
 		public static final AngularVelocity MAX_ANGULAR_VELO_RPS = RotationsPerSecond.of(0.75);
 
 		//Set to the decimal corresponding to the percentage of how fast you want the bot to go
@@ -79,8 +87,8 @@ public class Constants {
 
 	public static final class SimConstants {
 		public static final Mass MASS_WITH_BUMPER = Pounds.of(115);
-		public static final Distance ROBOT_LENGTH = Inches.of(35.5);
-		public static final Distance ROBOT_WIDTH = Inches.of(35.5);
+		public static final Distance ROBOT_LENGTH = Inches.of(34.5);
+		public static final Distance ROBOT_WIDTH = Inches.of(34.5);
 		public static final double WHEEL_COF = 1.2;
 
 		public static final double STEER_P = 70;
@@ -162,8 +170,29 @@ public class Constants {
 	}
 
 	public static final class VisionConstants {
-		public static final AprilTagFieldLayout TAG_LAYOUT = AprilTagFieldLayout
+
+		public static final AprilTagFieldLayout TAG_LAYOUT;
+
+		static {
+			AprilTagFieldLayout layout;
+			try {
+				layout = Features.USE_TEST_FIELD && !Robot.isSimulation() ? new AprilTagFieldLayout(Filesystem.
+					getDeployDirectory() + "/gs-test-field.json") : AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+			} catch (IOException e) {
+				System.out.println("Could not find test field, defaulting to reefscape welded field.");
+				layout = AprilTagFieldLayout
 				.loadField(AprilTagFields.k2025ReefscapeWelded);
+			}
+
+			var origin = new Pose3d(new Pose2d(-layout.getFieldLength() / 2, -layout.getFieldWidth() / 2, new Rotation2d()));
+			layout.setOrigin(origin);
+			TAG_LAYOUT = layout;
+
+		}
+
+		public static final int TAG_ID_TEST_STATION = 1;
+		public static final int TAG_ID_TEST_REEF_LEFT = 2;
+		public static final int TAG_ID_TEST_REEF_RIGHT = 3;
 
 		public static final String REEF_CAMERA_NAME = "Reef_Camera";
 		public static final String STATION_CAMERA_NAME = "Source_Camera";
@@ -177,16 +206,21 @@ public class Constants {
 				-Units.inchesToMeters(9.5),
 				Units.inchesToMeters(37.596), new Rotation3d(0.0, -Math.toRadians(19), Math.PI));
 
-		public static final double MAX_AMBIGUITY = 0.5;
-		public static final double MAX_Z_ERROR = 5.0; // meters
+		public static final double MAX_AMBIGUITY = 0.1;
+		public static final double MAX_Z_ERROR = 0.3; // meters
 		public static final Distance STOP_PATHFINDING_UPDATES = Meters.of(2);
+		public static final Angle MAX_POSE_ROT_OFFSET = Degrees.of(5);
 
 		public static final double LINEAR_STD_DEV_BASELINE = 0.02;
 		public static final double ANGULAR_STD_DEV_BASELINE = 0.06;
 
 		public static final double[] CAMERA_STD_DEV_FACTORS = new double[] {
 			1.0, // Reef Camera
-			1.0 // Station Camera
+			1 // Station Camera
 		};
+
+		public static final double FIELD_BORDER_MARGIN = 0.5;
+		public static final double FIELD_LENGTH = 17.5483;
+		public static final double FIELD_WIDTH = 8.0519;
 	}
 }

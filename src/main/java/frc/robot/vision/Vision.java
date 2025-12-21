@@ -24,32 +24,44 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.generated.VisionIOInputsAutoLogged;
+import frc.robot.vision.VisionIO.PoseObservationType;
 
+import static edu.wpi.first.units.Units.Radians;
 import static frc.robot.Constants.VisionConstants.ANGULAR_STD_DEV_BASELINE;
 import static frc.robot.Constants.VisionConstants.CAMERA_STD_DEV_FACTORS;
 import static frc.robot.Constants.VisionConstants.LINEAR_STD_DEV_BASELINE;
 import static frc.robot.Constants.VisionConstants.MAX_AMBIGUITY;
 import static frc.robot.Constants.VisionConstants.MAX_Z_ERROR;
 import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
+import static frc.robot.Constants.VisionConstants.FIELD_BORDER_MARGIN;
 
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
+
 import org.littletonrobotics.junction.Logger;
+import frc.robot.Features;
 
 public class Vision extends SubsystemBase {
 	private final VisionConsumer visionConsumer;
 	private final VisionIO[] io;
 	private final VisionIOInputsAutoLogged[] inputs;
 	private final Alert[] disconnectedAlerts;
+	private final Supplier<Rotation2d> rotatonSupplier;
 
 	/**
 	 * Creates a new Vision subsystem.
 	 * @param consumer The consumer to accept vision observations.
+	 * @param rotationSupp The supplier for the robot's rotation.
 	 * @param iO The IO objects to use for the cameras.
 	 */
-	public Vision(VisionConsumer consumer, VisionIO... iO) {
+	public Vision(VisionConsumer consumer, Supplier<Rotation2d> rotationSupp, VisionIO... iO) {
 		this.visionConsumer = consumer;
+		this.rotatonSupplier = rotationSupp;
 		this.io = iO;
 
 		// Initialize inputs
@@ -66,6 +78,7 @@ public class Vision extends SubsystemBase {
 					+ Integer.toString(i) + " is disconnected.", AlertType.kWarning);
 		}
 	}
+
 
 	/**
 	 * Returns the X angle to the best target, which can be used for simple servoing
@@ -90,41 +103,120 @@ public class Vision extends SubsystemBase {
 		List<Pose3d> allRobotPoses = new LinkedList<>();
 		List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
 		List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+		List<Pose3d> allMT1Poses = new LinkedList<>();
+		List<Pose3d> allMT2Poses = new LinkedList<>();
+
+		List<Pose3d> tagPoses = new LinkedList<>();
+		List<Pose3d> robotPoses = new LinkedList<>();
+		List<Pose3d> robotPosesAccepted = new LinkedList<>();
+		List<Pose3d> robotPosesRejected = new LinkedList<>();
+		List<Pose3d> mt1Poses = new LinkedList<>();
+		List<Pose3d> mt2Poses = new LinkedList<>();
 
 		// Loop over cameras
 		for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
 			// Update disconnected alert
 			disconnectedAlerts[cameraIndex].set(!inputs[cameraIndex].isConnected());
 
-			// Initialize logging values
-			List<Pose3d> tagPoses = new LinkedList<>();
-			List<Pose3d> robotPoses = new LinkedList<>();
-			List<Pose3d> robotPosesAccepted = new LinkedList<>();
-			List<Pose3d> robotPosesRejected = new LinkedList<>();
+			tagPoses.clear();
+			robotPoses.clear();
+			robotPosesAccepted.clear();
+			robotPosesRejected.clear();
+
+			ArrayList<Pose3d> poseArray = new ArrayList<Pose3d>();
+			ArrayList<Integer> poseIntArray = new ArrayList<Integer>();
+
+			if (Features.USE_LIMELIGHT) {
+				mt1Poses.clear();
+				mt2Poses.clear();
+			}
 
 			// Add tag poses
+			Logger.recordOutput("Tag IDS detected (list): ", inputs[cameraIndex].getTagIds());
 			for (int tagId : inputs[cameraIndex].getTagIds()) {
 				var tagPose = TAG_LAYOUT.getTagPose(tagId);
-				if (tagPose.isPresent()) {
-					tagPoses.add(tagPose.get());
+				if (!tagPose.isEmpty()) {
+					var updatePose = new Pose3d(tagPose.get().getX(), tagPose.get().getY(), tagPose.get().getZ(), tagPose.get().getRotation());
+					tagPoses.add(updatePose);
+					poseArray.add(updatePose);
+					poseIntArray.add(tagId);
 				}
 			}
 
 			// Loop over pose observations
 			for (var observation : inputs[cameraIndex].getPoseObservations()) {
+				Logger.recordOutput("Observation Tag Count", observation.tagCount());
+				Logger.recordOutput("Boolean Condition 1", observation.tagCount() == 1
+					&& observation.ambiguity() > MAX_AMBIGUITY
+					&& Math.abs(
+					rotatonSupplier
+						.get()
+						.minus(observation.pose().toPose2d().getRotation())
+						.getRadians()) > VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
+				Logger.recordOutput("Boolean Condition 2", Math.abs(observation.pose().getZ()) > MAX_Z_ERROR);
+				Logger.recordOutput("Boolean Condition 3", observation.pose().getX() < -FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Boolean Condition 4", observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Max X", TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Boolean Condition 5", observation.pose().getY() < -FIELD_BORDER_MARGIN);
+				Logger.recordOutput("Boolean Condition 6", observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN);
+
 				// Check whether to reject pose
 				boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
 						|| (observation.tagCount() == 1
 								// Cannot be high ambiguity
-								&& observation.ambiguity() > MAX_AMBIGUITY)
+								&& observation.ambiguity() > MAX_AMBIGUITY
+								&& Math.abs(
+									rotatonSupplier
+										.get()
+										.minus(observation.pose().toPose2d().getRotation())
+										.getRadians()) > VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians))
 						// Must have realistic Z coordinate
 						|| Math.abs(observation.pose().getZ()) > MAX_Z_ERROR
-
 						// Must be within the field boundaries
-						|| observation.pose().getX() < 0.0
-						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength()
-						|| observation.pose().getY() < 0.0
-						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth();
+						|| observation.pose().getX() < -FIELD_BORDER_MARGIN
+						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN
+						|| observation.pose().getY() < -FIELD_BORDER_MARGIN
+						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN;
+
+				if (Features.USE_LIMELIGHT) {
+					if (observation.type() == PoseObservationType.MEGATAG_1) {
+						mt1Poses.add(observation.pose());
+						Logger.recordOutput("MegaTag 1 Ambiguity", observation.ambiguity());
+						Logger.recordOutput("MegaTag 1 Max Ambiguity", MAX_AMBIGUITY);
+						Logger.recordOutput("MegaTag 1 Rotational Ambiguity", Math.abs(
+							rotatonSupplier
+								.get()
+								.minus(observation.pose().toPose2d().getRotation())
+								.getRadians()));
+						Logger.recordOutput("MegaTag 1 Max Rotational Ambiguity", VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
+						Logger.recordOutput("MegaTag 1 Z Error", observation.pose().getZ());
+						Logger.recordOutput("MegaTag 1 Max Z Error", MAX_Z_ERROR);
+						Logger.recordOutput("MegaTag 1 X Position", observation.pose().getX());
+						Logger.recordOutput("MegaTag 1 Y Position", observation.pose().getY());
+					} else if (observation.type() == PoseObservationType.MEGATAG_2) {
+						mt2Poses.add(observation.pose());
+						Logger.recordOutput("MegaTag 2 Ambiguity", observation.ambiguity());
+						Logger.recordOutput("MegaTag 2 Max Ambiguity", MAX_AMBIGUITY);
+						Logger.recordOutput("MegaTag 2 Rotational Ambiguity", Math.abs(
+							rotatonSupplier
+								.get()
+								.minus(observation.pose().toPose2d().getRotation())
+								.getRadians()));
+						Logger.recordOutput("MegaTag 2 Max Rotational Ambiguity", VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
+						Logger.recordOutput("MegaTag 2 Z Error", observation.pose().getZ());
+						Logger.recordOutput("MegaTag 2 Max Z Error", MAX_Z_ERROR);
+						Logger.recordOutput("MegaTag 2 X Position", observation.pose().getX());
+						Logger.recordOutput("MegaTag 2 Y Position", observation.pose().getY());
+						for (int i = 0; i < poseIntArray.size(); i++) {
+							double xDist = poseArray.get(i).getX() - observation.pose().getX();
+							double yDist = poseArray.get(i).getY() - observation.pose().getY();
+							double zDist = poseArray.get(i).getZ() - observation.pose().getZ();
+							Logger.recordOutput("MegaTag 2 X Distance from Tag " + poseIntArray.get(i), xDist);
+							Logger.recordOutput("MegaTag 2 Y Distance from Tag " + poseIntArray.get(i), yDist);
+							Logger.recordOutput("MegaTag 2 Z Distaxnce from Tag " + poseIntArray.get(i), zDist);
+						}
+					}
+				}
 
 				// Add pose to log
 				robotPoses.add(observation.pose());
@@ -150,6 +242,8 @@ public class Vision extends SubsystemBase {
 				}
 
 				// Send vision observation
+				Logger.recordOutput("vision timestamp", observation.timestamp());
+
 				visionConsumer.accept(
 						observation.pose().toPose2d(),
 						observation.timestamp(),
@@ -169,10 +263,21 @@ public class Vision extends SubsystemBase {
 			Logger.recordOutput(
 					"Vision/Camera" + Integer.toString(cameraIndex) + "/RobotPosesRejected",
 					robotPosesRejected.toArray(new Pose3d[robotPosesRejected.size()]));
+			Logger.recordOutput(
+				"Vision/Camera" + Integer.toString(cameraIndex) + "/MegaTag 1 Poses",
+				mt1Poses.toArray(new Pose3d[mt1Poses.size()]));
+			Logger.recordOutput(
+				"Vision/Camera" + Integer.toString(cameraIndex) + "/MegaTag 2 Poses",
+				mt2Poses.toArray(new Pose3d[mt2Poses.size()]));
 			allTagPoses.addAll(tagPoses);
 			allRobotPoses.addAll(robotPoses);
 			allRobotPosesAccepted.addAll(robotPosesAccepted);
 			allRobotPosesRejected.addAll(robotPosesRejected);
+
+			if (Features.USE_LIMELIGHT) {
+				allMT1Poses.addAll(mt1Poses);
+				allMT2Poses.addAll(mt2Poses);
+			}
 		}
 
 		// Log summary data
@@ -187,6 +292,12 @@ public class Vision extends SubsystemBase {
 		Logger.recordOutput(
 				"Vision/Summary/RobotPosesRejected",
 				allRobotPosesRejected.toArray(new Pose3d[allRobotPosesRejected.size()]));
+		Logger.recordOutput(
+			"Vision/Summary/MegaTag 1 Poses",
+			allMT1Poses.toArray(new Pose3d[allMT1Poses.size()]));
+		Logger.recordOutput(
+			"Vision/Summary/MegaTag 2 Poses",
+			allMT2Poses.toArray(new Pose3d[allMT2Poses.size()]));
 	}
 
 	@FunctionalInterface
