@@ -23,13 +23,16 @@ import frc.robot.systems.DriveFSMSystem;
 
 // Local
 import frc.robot.vision.Vision;
+import frc.robot.vision.VisionIOLimelight;
 import frc.robot.vision.VisionIOPhotonPoseEstimator;
 import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
 import frc.robot.vision.VisionIOPhotonVision;
 import frc.robot.vision.VisionIOPhotonVisionSim;
+import limelight.networktables.Orientation3d;
 
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends LoggedRobot {
@@ -40,7 +43,8 @@ public class Robot extends LoggedRobot {
 	private Vision vision;
 
 	/**
-	 * This function is run when the robot is first started up and should be used for any
+	 * This function is run when the robot is first started up and should be used
+	 * for any
 	 * initialization code.
 	 */
 	@Override
@@ -63,28 +67,45 @@ public class Robot extends LoggedRobot {
 
 		Logger.start(); // Start Logging!
 
-
 		input = new TeleopInput();
 
 		// Instantiate all systems here
 		driveSystem = new DriveFSMSystem();
 
 		if (isReal()) {
-			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+			if (Features.USE_LIMELIGHT) {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
-						new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-						new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+						() -> driveSystem.getPose().getRotation(),
+						new VisionIOLimelight("limelight-four",
+								() -> {
+									var pigeon = driveSystem.getDrivetrain().getPigeon2();
+									return new Orientation3d(
+											pigeon.getRotation3d(),
+											pigeon.getAngularVelocityZDevice().getValue(),
+											pigeon.getAngularVelocityYDevice().getValue(),
+											pigeon.getAngularVelocityXDevice().getValue());
+								}));
 			} else {
-				vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+				if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+					vision = new Vision(
+							driveSystem::addVisionMeasurement,
+							() -> driveSystem.getPose().getRotation(),
+							new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+							new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+				} else {
+					vision = new Vision(
+							driveSystem::addVisionMeasurement,
+							() -> driveSystem.getPose().getRotation(),
+							new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+							new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+				}
 			}
 		} else {
 			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonPoseEstimatorSim(
 								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
 						new VisionIOPhotonPoseEstimatorSim(
@@ -92,6 +113,7 @@ public class Robot extends LoggedRobot {
 			} else {
 				vision = new Vision(
 						driveSystem::addVisionMeasurement,
+						() -> driveSystem.getPose().getRotation(),
 						new VisionIOPhotonVisionSim(
 								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
 						new VisionIOPhotonVisionSim(
@@ -140,7 +162,7 @@ public class Robot extends LoggedRobot {
 
 	}
 
-	/* Simulation mode handlers, only used for simulation testing  */
+	/* Simulation mode handlers, only used for simulation testing */
 	@Override
 	public void simulationInit() {
 		System.out.println("-------- Simulation Init --------");
@@ -157,14 +179,12 @@ public class Robot extends LoggedRobot {
 
 		driveSystem.getSimDrivetrain().update();
 		Logger.recordOutput(
-			"Field Simulation/Game Pieces/Coral",
-			SimulatedArena.getInstance().getGamePiecesArrayByType("Coral")
-		);
+				"Field Simulation/Game Pieces/Coral",
+				SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
 
 		Logger.recordOutput(
-			"Field Simulation/Game Pieces/Algae",
-			SimulatedArena.getInstance().getGamePiecesArrayByType("Algae")
-		);
+				"Field Simulation/Game Pieces/Algae",
+				SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
 	}
 
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.

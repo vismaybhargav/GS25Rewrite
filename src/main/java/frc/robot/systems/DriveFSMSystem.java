@@ -1,16 +1,18 @@
 package frc.robot.systems;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 import static edu.wpi.first.units.Units.Rotations;
 
-import static edu.wpi.first.units.Units.Meters;
+import static frc.robot.Constants.VisionConstants.TAG_LAYOUT;
 
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -19,9 +21,6 @@ import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.pathplanner.lib.util.DriveFeedforwards;
 import com.pathplanner.lib.util.PPLibTelemetry;
 import com.pathplanner.lib.util.PathPlannerLogging;
-
-import com.ctre.phoenix6.swerve.SwerveRequest;
-import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
@@ -36,11 +35,18 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.CommandSwerveDrivetrain;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.SimConstants;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.Features;
+import frc.robot.FieldHelper;
 import frc.robot.Robot;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import frc.robot.FieldHelper.BranchSide;
+import frc.robot.FieldHelper.ReefSide;
 
 // WPILib Imports
 
@@ -51,12 +57,6 @@ import frc.robot.generated.LocalADStarAK;
 import frc.robot.generated.TunerConstants;
 import frc.robot.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.simulation.SimSwerveDrivetrainConfig;
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.VisionConstants;
-import frc.robot.FieldHelper.BranchSide;
-import frc.robot.FieldHelper.ReefSide;
-import frc.robot.FieldHelper;
 
 
 public class DriveFSMSystem {
@@ -69,57 +69,50 @@ public class DriveFSMSystem {
 	}
 
 	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS;
-		// kSpeedAt12Volts desired top speed
+	// kSpeedAt12Volts desired top speed
 	private static final AngularVelocity MAX_ANGULAR_RATE = DriveConstants.MAX_ANGULAR_VELO_RPS;
-		//3/4 rps angle velo
+	// 3/4 rps angle velo
 
 	/* ======================== Private variables ======================== */
 	private DriveFSMState currentState;
 	private CommandSwerveDrivetrain drivetrain;
 
-	private final SwerveRequest.FieldCentric drive
-		= new SwerveRequest.FieldCentric()
-		.withDeadband(MAX_SPEED.in(MetersPerSecond)
-		* DriveConstants.TRANSLATION_DEADBAND) // 4% deadband
-		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
-		* DriveConstants.ROTATION_DEADBAND) //4% deadband
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+	private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+			.withDeadband(MAX_SPEED.in(MetersPerSecond)
+					* DriveConstants.TRANSLATION_DEADBAND) // 4% deadband
+			.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
+					* DriveConstants.ROTATION_DEADBAND) // 4% deadband
+			.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
 
-	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle
-		= new SwerveRequest.FieldCentricFacingAngle()
-		.withDeadband(MAX_SPEED.in(MetersPerSecond)
-		* DriveConstants.TRANSLATION_DEADBAND) // 4% deadband
-		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
-		* DriveConstants.ROTATION_DEADBAND) //4% deadband
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+	private final SwerveRequest.FieldCentricFacingAngle driveFacingAngle = new SwerveRequest.FieldCentricFacingAngle()
+			.withDeadband(MAX_SPEED.in(MetersPerSecond)
+					* DriveConstants.TRANSLATION_DEADBAND) // 4% deadband
+			.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
+					* DriveConstants.ROTATION_DEADBAND) // 4% deadband
+			.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
 
-	private final SwerveRequest.RobotCentric driveRobotCentric
-		= new SwerveRequest.RobotCentric()
-		.withDeadband(MAX_SPEED.in(MetersPerSecond)
-			* DriveConstants.TRANSLATION_DEADBAND) // 4% deadband
-		.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
-			* DriveConstants.ROTATION_DEADBAND) //4% deadband
-		.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
+	private final SwerveRequest.RobotCentric driveRobotCentric = new SwerveRequest.RobotCentric()
+			.withDeadband(MAX_SPEED.in(MetersPerSecond)
+					* DriveConstants.TRANSLATION_DEADBAND) // 4% deadband
+			.withRotationalDeadband(MAX_ANGULAR_RATE.in(RadiansPerSecond)
+					* DriveConstants.ROTATION_DEADBAND) // 4% deadband
+			.withDriveRequestType(DriveRequestType.OpenLoopVoltage); // Use open-loop for drive motors
 
 	private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
-	private final SwerveRequest.ApplyFieldSpeeds pathApplyFieldSpeeds =
-		new SwerveRequest.ApplyFieldSpeeds();
+	private final SwerveRequest.ApplyFieldSpeeds pathApplyFieldSpeeds = new SwerveRequest.ApplyFieldSpeeds();
 
-	private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
-		new SwerveRequest.ApplyRobotSpeeds();
+	private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
 	/* ======================== Pathfinding Stuffs ================== */
 	private final Timer timer = new Timer();
 	private double timeOffset = 0;
 	private ReefSide currentReefSide = ReefSide.A;
 	private BranchSide currentBranchSide = BranchSide.RIGHT;
-	private Pose2d targetPose =
-		FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
+	private Pose2d targetPose = FieldHelper.getAlignedDesiredPoseForReef(currentReefSide, currentBranchSide);
 	private ReefSide[] reefSides = ReefSide.values();
 	private Pose2d originalTargetPose = new Pose2d(
-		targetPose.getTranslation(), targetPose.getRotation()
-	);
+			targetPose.getTranslation(), targetPose.getRotation());
 	private GoalEndState goalEndState = new GoalEndState(0, targetPose.getRotation());
 	private PathPlannerTrajectory currentTrajectory = null;
 	private PathPlannerPath currentPath = null;
@@ -188,6 +181,7 @@ public class DriveFSMSystem {
 	/* ======================== Public methods ======================== */
 	/**
 	 * Return current FSM state.
+	 *
 	 * @return Current FSM state
 	 */
 	public DriveFSMState getCurrentState() {
@@ -196,12 +190,14 @@ public class DriveFSMSystem {
 
 	/**
 	 * Get the current state's string value.
+	 *
 	 * @return current state string value
 	 */
 	@AutoLogOutput(key = "DriveFSM/Current State")
 	public String getCurrentStateName() {
 		return currentState.name();
 	}
+
 	/**
 	 * Reset this system to its start state. This may be called from mode init
 	 * when the robot is enabled.
@@ -220,17 +216,33 @@ public class DriveFSMSystem {
 	/**
 	 * Update FSM based on new inputs. This function only calls the FSM state
 	 * specific handlers.
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 */
 	public void update(TeleopInput input) {
 		Logger.recordOutput("Timer", timer.get());
+		drivetrain.periodic();
 
 		if (input != null && input.isCCWReefSelectionChangeButtonPressed()) {
 			handleCCWReefSelect();
 		} else if (input != null && input.isCWReefSelectionChangeButtonPressed()) {
 			handleCWReefSelect();
 		}
+
+		TAG_LAYOUT.getTagPose(Robot.isSimulation() ? 18 : 2).ifPresent(pose -> {
+			Pose2d robotPose = getPose();
+			Rotation2d robotRot = robotPose.getRotation();
+			Pose2d frontOfRobot = new Pose2d(
+				robotPose.getX() + Math.cos(robotRot.getRadians()) * SimConstants.ROBOT_WIDTH.div(2).in(Meters),
+				robotPose.getY() + Math.sin(robotRot.getRadians()) * SimConstants.ROBOT_WIDTH.div(2).in(Meters),
+				new Rotation2d()
+			);
+
+			Pose2d error = pose.toPose2d().relativeTo(frontOfRobot);
+			Logger.recordOutput("Vision/Front of bot", frontOfRobot);
+			Logger.recordOutput("Vision/Error", error);
+		});
 
 		switch (currentState) {
 			case TELEOP:
@@ -248,7 +260,8 @@ public class DriveFSMSystem {
 	/**
 	 * Performs specific action based on the autoState passed in.
 	 */
-	public void updateAutonomous() { }
+	public void updateAutonomous() {
+	}
 
 	/* ======================== Private methods ======================== */
 	/**
@@ -256,8 +269,9 @@ public class DriveFSMSystem {
 	 * and the current state of this FSM. This method should not have any side
 	 * effects on outputs. In other words, this method should only read or get
 	 * values to decide what state to go to.
+	 *
 	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *        the robot is in autonomous mode.
+	 *              the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
 	private DriveFSMState nextState(TeleopInput input) {
@@ -290,6 +304,7 @@ public class DriveFSMSystem {
 	/* ------------------------ FSM state handlers ------------------------ */
 	/**
 	 * Handles the TELEOP_STATE, when the robot is controlled by the driver.
+	 *
 	 * @param input the input of the driver controller
 	 */
 	public void handleTeleopState(TeleopInput input) {
@@ -297,34 +312,35 @@ public class DriveFSMSystem {
 			return;
 		}
 
-		finish = true;  // Resets the pathfinding, so that we
+		finish = true; // Resets the pathfinding, so that we
 						// re-initialize when going into the pathfinding state.
 
+		if (input.isSeedButtonPressed()) {
+			drivetrain.seedFieldCentric();
+		}
+
 		double xSpeed = MathUtil.applyDeadband(
-			-input.getDriveLeftJoystickY(),
-			DriveConstants.TRANSLATION_DEADBAND
-		) * MAX_SPEED.in(MetersPerSecond);
+				-input.getDriveLeftJoystickY(),
+				DriveConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = MathUtil.applyDeadband(
-			-input.getDriveLeftJoystickX(),
-			DriveConstants.TRANSLATION_DEADBAND
-		) * MAX_SPEED.in(MetersPerSecond);
+				-input.getDriveLeftJoystickX(),
+				DriveConstants.TRANSLATION_DEADBAND) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-			-input.getDriveRightJoystickX(),
-			DriveConstants.ROTATION_DEADBAND
-		) * MAX_ANGULAR_RATE.in(RadiansPerSecond);
+				-input.getDriveRightJoystickX(),
+				DriveConstants.ROTATION_DEADBAND) * MAX_ANGULAR_RATE.in(RadiansPerSecond);
 
 		drivetrain.setControl(
-			drive
-				.withVelocityX(xSpeed * DriveConstants.TRANSLATIONAL_DAMP)
-				.withVelocityY(ySpeed * DriveConstants.TRANSLATIONAL_DAMP)
-				.withRotationalRate(thetaSpeed * DriveConstants.ROTATIONAL_DAMP)
-		);
+				drive
+						.withVelocityX(xSpeed * DriveConstants.TRANSLATIONAL_DAMP)
+						.withVelocityY(ySpeed * DriveConstants.TRANSLATIONAL_DAMP)
+						.withRotationalRate(thetaSpeed * DriveConstants.ROTATIONAL_DAMP));
 	}
 
 	/**
-	 * Handles the PATHFIND_STATE, when the robot is pathfinding to it's target pose.
+	 * Handles the PATHFIND_STATE, when the robot is pathfinding to it's target
+	 * pose.
 	 */
 	public void handlePathfindState() {
 		if (finish) {
@@ -338,12 +354,11 @@ public class DriveFSMSystem {
 		PPLibTelemetry.setCurrentPose(currPose);
 
 		// Skip updates if we are very close to the goal
-		boolean skipUpdates =
-			currentTrajectory != null
+		boolean skipUpdates = currentTrajectory != null
 				&& currPose
-					.getTranslation()
-					.getDistance(currentTrajectory.getEndState().pose.getTranslation())
-					< VisionConstants.STOP_PATHFINDING_UPDATES.in(Meters);
+						.getTranslation()
+						.getDistance(currentTrajectory.getEndState().pose
+								.getTranslation()) < VisionConstants.STOP_PATHFINDING_UPDATES.in(Meters);
 
 		if (!skipUpdates && Pathfinding.isNewPathAvailable()) {
 			currentPath = Pathfinding.getCurrentPath(pathConstraints, goalEndState);
@@ -381,15 +396,12 @@ public class DriveFSMSystem {
 				var closestState1 = currentTrajectory.getState(closestState1Idx);
 				var closestState2 = currentTrajectory.getState(closestState2Idx);
 
-				double d = closestState1
-					.pose.getTranslation().getDistance(closestState2.pose.getTranslation());
-				double t =
-					(currPose
+				double d = closestState1.pose.getTranslation().getDistance(closestState2.pose.getTranslation());
+				double t = (currPose
 						.getTranslation().getDistance(closestState1.pose.getTranslation())) / d;
 				t = MathUtil.clamp(t, 0.0, 1.0);
 
-				timeOffset =
-					MathUtil.interpolate(closestState1.timeSeconds, closestState2.timeSeconds, t);
+				timeOffset = MathUtil.interpolate(closestState1.timeSeconds, closestState2.timeSeconds, t);
 
 				// If the robot is stationary and at the start of the path, set the time offset
 				// to the next loop
@@ -397,8 +409,8 @@ public class DriveFSMSystem {
 				// come in every loop
 				if (timeOffset <= AutoConstants.TIME_STEP
 						&& Math.hypot(
-							currSpeeds.vxMetersPerSecond,
-							currSpeeds.vyMetersPerSecond) < AutoConstants.MIN_VELOCITY_VEC) {
+								currSpeeds.vxMetersPerSecond,
+								currSpeeds.vyMetersPerSecond) < AutoConstants.MIN_VELOCITY_VEC) {
 					timeOffset = AutoConstants.TIME_STEP;
 				}
 
@@ -413,12 +425,10 @@ public class DriveFSMSystem {
 		if (currentTrajectory != null) {
 			var targetState = currentTrajectory.sample(timer.get() + timeOffset);
 
-			ChassisSpeeds targSpeeds =
-				drivetrain.getPPHolonomicDriveController()
+			ChassisSpeeds targSpeeds = drivetrain.getPPHolonomicDriveController()
 					.calculateRobotRelativeSpeeds(currPose, targetState);
 
-			double currentVel =
-				Math.hypot(currSpeeds.vxMetersPerSecond, currSpeeds.vyMetersPerSecond);
+			double currentVel = Math.hypot(currSpeeds.vxMetersPerSecond, currSpeeds.vyMetersPerSecond);
 
 			PPLibTelemetry.setCurrentPose(currPose);
 			PathPlannerLogging.logCurrentPose(currPose);
@@ -427,18 +437,16 @@ public class DriveFSMSystem {
 			PathPlannerLogging.logTargetPose(targetState.pose);
 
 			PPLibTelemetry.setVelocities(
-				currentVel,
-				targetState.linearVelocity,
-				currSpeeds.omegaRadiansPerSecond,
-				targSpeeds.omegaRadiansPerSecond
-			);
+					currentVel,
+					targetState.linearVelocity,
+					currSpeeds.omegaRadiansPerSecond,
+					targSpeeds.omegaRadiansPerSecond);
 
 			drivetrain.setControl(
-				pathApplyRobotSpeeds
-					.withSpeeds(targSpeeds)
-					.withWheelForceFeedforwardsX(targetState.feedforwards.robotRelativeForcesX())
-					.withWheelForceFeedforwardsY(targetState.feedforwards.robotRelativeForcesY())
-			);
+					pathApplyRobotSpeeds
+							.withSpeeds(targSpeeds)
+							.withWheelForceFeedforwardsX(targetState.feedforwards.robotRelativeForcesX())
+							.withWheelForceFeedforwardsY(targetState.feedforwards.robotRelativeForcesY()));
 		}
 	}
 
@@ -454,18 +462,16 @@ public class DriveFSMSystem {
 		drivetrain.getPPHolonomicDriveController().reset(currentPose, getChassisSpeeds());
 
 		if (currentPose
-			.getTranslation()
-			.getDistance(
-				targetPose.getTranslation()
-			) < AutoConstants.POSE_TOLERANCE) {
+				.getTranslation()
+				.getDistance(
+						targetPose.getTranslation()) < AutoConstants.POSE_TOLERANCE) {
 			var ff = DriveFeedforwards.zeros(DriveConstants.NUM_MODULES);
 
 			drivetrain.setControl(
-				pathApplyRobotSpeeds
-				.withSpeeds(getChassisSpeeds())
-				.withWheelForceFeedforwardsX(ff.robotRelativeForcesX())
-				.withWheelForceFeedforwardsY(ff.robotRelativeForcesY())
-			);
+					pathApplyRobotSpeeds
+							.withSpeeds(getChassisSpeeds())
+							.withWheelForceFeedforwardsX(ff.robotRelativeForcesX())
+							.withWheelForceFeedforwardsY(ff.robotRelativeForcesY()));
 
 			finish = true;
 		} else {
@@ -476,6 +482,7 @@ public class DriveFSMSystem {
 
 	/**
 	 * Determine if the pathfinding is done.
+	 *
 	 * @return true if the pathfinding is done
 	 */
 	@AutoLogOutput(key = "Pathfinding finished")
@@ -497,8 +504,7 @@ public class DriveFSMSystem {
 	public void handleCCWReefSelect() {
 
 		if (currentBranchSide == BranchSide.LEFT) {
-			currentReefSide = reefSides
-			[(currentReefSide.ordinal() - 1 + reefSides.length) % reefSides.length];
+			currentReefSide = reefSides[(currentReefSide.ordinal() - 1 + reefSides.length) % reefSides.length];
 			currentBranchSide = BranchSide.RIGHT;
 		} else {
 			currentBranchSide = BranchSide.LEFT;
@@ -525,9 +531,10 @@ public class DriveFSMSystem {
 
 	/**
 	 * Get the pose of the drivetrain.
+	 *
 	 * @return pose of the drivetrain
 	 */
-	@AutoLogOutput(key = "Odometry/Robot")
+	@AutoLogOutput(key = "Robot State/Pose")
 	public Pose2d getPose() {
 		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			return simDrivetrain.getMapleSimDrive().getSimulatedDriveTrainPose();
@@ -536,10 +543,21 @@ public class DriveFSMSystem {
 	}
 
 	/**
+	 * Get the odometry pose of the drivetrain.
+	 *
+	 * @return odometry pose of the drivetrain
+	 */
+	@AutoLogOutput(key = "Odometry/Pose")
+	public Pose2d getOdometryPose() {
+		return drivetrain.getOdometryPose();
+	}
+
+	/**
 	 * Get the chassis speeds of the drivetrain.
+	 *
 	 * @return the drivetrain chassis speeds
 	 */
-	@AutoLogOutput(key = "Swerve/Chassis Speeds")
+	@AutoLogOutput(key = "Odometry/Swerve/Chassis Speeds")
 	public ChassisSpeeds getChassisSpeeds() {
 		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			return simDrivetrain
@@ -551,27 +569,30 @@ public class DriveFSMSystem {
 
 	/**
 	 * Get the drivetrain states.
+	 *
 	 * @return the swerve module states
 	 */
-	@AutoLogOutput(key = "Swerve/States/Measured")
+	@AutoLogOutput(key = "Odometry/Swerve/States/Measured")
 	public SwerveModuleState[] getModuleStates() {
 		return drivetrain.getState().ModuleStates;
 	}
 
 	/**
 	 * Get the drivetrain targets.
+	 *
 	 * @return drivetrain targets
 	 */
-	@AutoLogOutput(key = "Swerve/States/Targets")
+	@AutoLogOutput(key = "Odometry/Swerve/States/Targets")
 	public SwerveModuleState[] getModuleTargets() {
 		return drivetrain.getState().ModuleTargets;
 	}
 
 	/**
 	 * Get the drivetrain module positions.
+	 *
 	 * @return the module positions
 	 */
-	@AutoLogOutput(key = "Swerve/Positions")
+	@AutoLogOutput(key = "Odometry/Swerve/Positions")
 	public SwerveModulePosition[] getModulePositions() {
 		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			SwerveModuleSimulation[] simModules = simDrivetrain.getMapleSimDrive().getModules();
@@ -594,27 +615,12 @@ public class DriveFSMSystem {
 
 	/**
 	 * Get the target alignment pose.
+	 *
 	 * @return Target alignment pose
 	 */
 	@AutoLogOutput(key = "ReefSelectorTarget")
 	public Pose2d getTargetPose() {
 		return targetPose;
-	}
-
-
-	/**
-	 * Return ATs for the test field.
-	 * @return ATs for the test field.
-	 */
-	@AutoLogOutput(key = "TestFieldATs")
-	public Pose3d[] logTestFieldATs() {
-		return Features.USE_TEST_FIELD ? new Pose3d[] {
-			TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
-				.orElse(new Pose3d()),
-			TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_LEFT)
-				.orElse(new Pose3d()),
-			TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
-				.orElse(new Pose3d())} : new Pose3d[]{};
 	}
 
 	/**
@@ -623,6 +629,32 @@ public class DriveFSMSystem {
 	 */
 	public MapleSimSwerveDrivetrain getSimDrivetrain() {
 		return simDrivetrain;
+	}
+
+	/**
+	 * Return ATs for the test field.
+	 *
+	 * @return ATs for the test field.
+	 */
+	@AutoLogOutput(key = "TestFieldATs")
+	public Pose3d[] logTestFieldATs() {
+		return Features.USE_TEST_FIELD ? new Pose3d[] {
+				TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
+						.orElse(new Pose3d()),
+				TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_LEFT)
+						.orElse(new Pose3d()),
+				TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
+						.orElse(new Pose3d()) }
+				: new Pose3d[] {};
+	}
+
+	/**
+	 * Get the drivetrain.
+	 *
+	 * @return the drivetrain
+	 */
+	public CommandSwerveDrivetrain getDrivetrain() {
+		return drivetrain;
 	}
 
 	/**

@@ -119,7 +119,6 @@ public interface VisionIO {
 			PoseObservationType type) {
 	}
 
-
 	enum PoseObservationType {
 		MEGATAG_1,
 		MEGATAG_2,

@@ -1,5 +1,6 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
@@ -13,11 +14,15 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Mass;
@@ -82,8 +87,8 @@ public class Constants {
 
 	public static final class SimConstants {
 		public static final Mass MASS_WITH_BUMPER = Pounds.of(115);
-		public static final Distance ROBOT_LENGTH = Inches.of(35.5);
-		public static final Distance ROBOT_WIDTH = Inches.of(35.5);
+		public static final Distance ROBOT_LENGTH = Inches.of(34.5);
+		public static final Distance ROBOT_WIDTH = Inches.of(34.5);
 		public static final double WHEEL_COF = 1.2;
 
 		public static final double STEER_P = 70;
@@ -171,14 +176,18 @@ public class Constants {
 		static {
 			AprilTagFieldLayout layout;
 			try {
-				layout = Features.USE_TEST_FIELD ? new AprilTagFieldLayout(Filesystem.
-					getDeployDirectory() + "/gs-test-field.json") : AprilTagFieldLayout .loadField(AprilTagFields.k2025ReefscapeWelded);
+				layout = Features.USE_TEST_FIELD && !Robot.isSimulation() ? new AprilTagFieldLayout(Filesystem.
+					getDeployDirectory() + "/gs-test-field.json") : AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 			} catch (IOException e) {
 				System.out.println("Could not find test field, defaulting to reefscape welded field.");
 				layout = AprilTagFieldLayout
 				.loadField(AprilTagFields.k2025ReefscapeWelded);
 			}
+
+			var origin = new Pose3d(new Pose2d(-layout.getFieldLength() / 2, -layout.getFieldWidth() / 2, new Rotation2d()));
+			layout.setOrigin(origin);
 			TAG_LAYOUT = layout;
+
 		}
 
 		public static final int TAG_ID_TEST_STATION = 1;
@@ -200,13 +209,18 @@ public class Constants {
 		public static final double MAX_AMBIGUITY = 0.1;
 		public static final double MAX_Z_ERROR = 0.3; // meters
 		public static final Distance STOP_PATHFINDING_UPDATES = Meters.of(2);
+		public static final Angle MAX_POSE_ROT_OFFSET = Degrees.of(5);
 
 		public static final double LINEAR_STD_DEV_BASELINE = 0.02;
 		public static final double ANGULAR_STD_DEV_BASELINE = 0.06;
 
 		public static final double[] CAMERA_STD_DEV_FACTORS = new double[] {
 			1.0, // Reef Camera
-			0.4 // Station Camera
+			1 // Station Camera
 		};
+
+		public static final double FIELD_BORDER_MARGIN = 0.5;
+		public static final double FIELD_LENGTH = 17.5483;
+		public static final double FIELD_WIDTH = 8.0519;
 	}
 }

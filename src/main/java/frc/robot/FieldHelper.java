@@ -37,8 +37,8 @@ public final /* singleton */ class FieldHelper {
 	public static final int TAG_ID_REEF_SIDE_E = 20;
 	public static final int TAG_ID_REEF_SIDE_F = 19;
 
-	public static final int TAG_ID_TEST_REEF_LEFT = 6;
-	public static final int TAG_ID_TEST_REEF_RIGHT = 3;
+	public static final int TAG_ID_TEST_REEF_LEFT = 3;
+	public static final int TAG_ID_TEST_REEF_RIGHT = 2;
 
 	public enum StationSide {
 		LEFT, RIGHT
@@ -52,8 +52,6 @@ public final /* singleton */ class FieldHelper {
 
 	public static final int TAG_ID_STATION_LEFT = 1;
 	public static final int TAG_ID_STATION_RIGHT = 2;
-
-	public static final int TAG_ID_TEST_STATION = 1;
 
 	public enum StartingPose {
 		RED_1(RED_1_STARTING_POS_M),
@@ -107,7 +105,10 @@ public final /* singleton */ class FieldHelper {
 			6.4390466,
 			new Rotation2d());
 
+	public static final int TAG_ID_TEST_STATION = 1;
+
 	static {
+
 		if (Features.USE_TEST_FIELD) {
 			reefAprilTags.put(
 				ReefSide.A,
@@ -139,6 +140,20 @@ public final /* singleton */ class FieldHelper {
 				new AprilTag(
 					TAG_ID_TEST_REEF_RIGHT,
 					TAG_LAYOUT.getTagPose(TAG_ID_TEST_REEF_RIGHT).orElse(null)));
+
+
+			stationAprilTags.put(
+				StationSide.LEFT,
+				new AprilTag(
+					TAG_ID_TEST_STATION,
+					TAG_LAYOUT.getTagPose(TAG_ID_TEST_STATION).orElse(null)));
+
+			stationAprilTags.put(
+				StationSide.RIGHT,
+				new AprilTag(
+					TAG_ID_TEST_STATION,
+					TAG_LAYOUT.getTagPose(TAG_ID_TEST_STATION).orElse(null)));
+
 		} else {
 			reefAprilTags.put(
 				ReefSide.A,
@@ -170,21 +185,6 @@ public final /* singleton */ class FieldHelper {
 				new AprilTag(
 					TAG_ID_REEF_SIDE_F,
 					TAG_LAYOUT.getTagPose(TAG_ID_REEF_SIDE_F).orElse(null)));
-		}
-
-		if (Features.USE_TEST_FIELD) {
-			stationAprilTags.put(
-				StationSide.LEFT,
-				new AprilTag(
-					TAG_ID_TEST_STATION,
-					TAG_LAYOUT.getTagPose(TAG_ID_TEST_STATION).orElse(null)));
-
-			stationAprilTags.put(
-				StationSide.RIGHT,
-				new AprilTag(
-					TAG_ID_TEST_STATION,
-					TAG_LAYOUT.getTagPose(TAG_ID_TEST_STATION).orElse(null)));
-		} else {
 
 			stationAprilTags.put(
 				StationSide.LEFT,
@@ -197,12 +197,7 @@ public final /* singleton */ class FieldHelper {
 				new AprilTag(
 					TAG_ID_STATION_RIGHT,
 					TAG_LAYOUT.getTagPose(TAG_ID_STATION_RIGHT).orElse(null)));
-
 		}
-	}
-
-	private FieldHelper() {
-		// Prevent instantiation
 	}
 
 	/**
