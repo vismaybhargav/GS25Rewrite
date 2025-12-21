@@ -1,80 +1,104 @@
 package frc.robot.vision;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.generated.LimelightHelpers;
-import frc.robot.vision.VisionIO.PoseObservation;
-
-import org.littletonrobotics.junction.Logger;
+import limelight.Limelight;
+import limelight.networktables.LimelightPoseEstimator;
+import limelight.networktables.Orientation3d;
+import limelight.networktables.PoseEstimate;
+import limelight.results.RawFiducial;
+import limelight.networktables.LimelightSettings.ImuMode;
 
 public class VisionIOLimelight implements VisionIO {
-	private String limelightName;
-	private final Supplier<Rotation2d> rotationSupplier;
+	private Limelight limelight;
+	private Supplier<Orientation3d> orientationSupplier;
 
-	public VisionIOLimelight(String name, Supplier<Rotation2d> rotationSupp) {
-		limelightName = name;
-		rotationSupplier = rotationSupp;
-		LimelightHelpers.SetIMUMode(name, 0); // Use external IMU yaw submitted with SetRobotOrientation()
+	private LimelightPoseEstimator mt1PoseEstimator;
+	private LimelightPoseEstimator mt2PoseEstimator;
+
+	/**
+	 * Creates a new VisionIOYALL implementation.
+	 * @param name The name of the Limelight (e.g. "limelight" or "limelight-1")
+	 * @param orientationSupp A supplier that provides the robot's orientation
+	 */
+	public VisionIOLimelight(String name, Supplier<Orientation3d> orientationSupp) {
+		orientationSupplier = orientationSupp;
+		limelight = new Limelight(name);
+
+		mt1PoseEstimator = limelight.getPoseEstimator(false);
+		mt2PoseEstimator = limelight.getPoseEstimator(true);
+
+		limelight.getSettings().withImuMode(ImuMode.InternalImu).save();
 	}
 
 	@Override
 	public void updateInputs(VisionIOInputs inputs) {
-		// Consider Limelight disconnected if no valid pipeline data received in last 250ms
-		inputs.connected = ((RobotController.getFPGATime() - LimelightHelpers.getLatency_Pipeline(limelightName)) / 1000) < 250;
+		var limelightResults = limelight.getLatestResults();
+		inputs.setConnected(limelightResults.isPresent());
 
-		// This is required for MT2
-		LimelightHelpers.SetRobotOrientation(limelightName, rotationSupplier.get().getDegrees(), 0, 0, 0, 0, 0);
+		// limelight
+		// 		.getSettings()
+		// 		.withRobotOrientation(orientationSupplier.get())
+		// 		.save();
 
-		var est = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(limelightName);
-		var est1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
+		// limelight.flush(); // reccommended by Limelight
 
-		inputs.latestTargetObservation =
-			new TargetObservation(
-				Rotation2d.fromDegrees(LimelightHelpers.getTX(limelightName)),
-				Rotation2d.fromDegrees(LimelightHelpers.getTY(limelightName))
-			);
+		var poseObservations = new LinkedList<PoseObservation>();
 
-		LimelightHelpers.Flush(); // Recommended by Limelight
+		Optional<PoseEstimate> optEst = mt2PoseEstimator.getPoseEstimate();
+		optEst.ifPresent(
+				(PoseEstimate estimate) -> {
+					poseObservations.add(new PoseObservation(
+							estimate.timestampSeconds,
+							estimate.pose,
+							estimate.getAvgTagAmbiguity(),
+							estimate.rawFiducials.length,
+							estimate.avgTagDist,
+							PoseObservationType.MEGATAG_2));
+				});
+		inputs.setPoseObservations(poseObservations.toArray(new PoseObservation[0]));
 
 		Set<Integer> tagIds = new HashSet<>();
-		for (var rawFiducial : LimelightHelpers.getRawFiducials(limelightName)) {
-			tagIds.add(rawFiducial.id);
+		RawFiducial[] data = limelight.getData().getRawFiducials();
+		// if (optEst.isPresent()){
+		// 	RawFiducial[] data = optEst.get().rawFiducials;
+		// 	if(data.length > 0) {
+		// 		inputs.latestTargetObservation = new TargetObservation(Rotation2d.fromDegrees(data[0].txnc), Rotation2d.fromDegrees(data[0].tync));
+		// 	}
+		// 	Arrays.stream(data).forEach(fid -> tagIds.add(fid.id));
+		// }
+
+		if (data.length > 0) {
+			inputs.setLatestTargetObservation(new TargetObservation(Rotation2d.fromDegrees(data[0].txnc), Rotation2d.fromDegrees(data[0].tync)));
 		}
+		Arrays.stream(data).forEach(fid -> tagIds.add(fid.id));
 
-		// Convert to array. omg this so bad.
-		// TODO: cleanup
-		AtomicInteger i = new AtomicInteger(0);
-		var ids = new int[tagIds.size()];
-		
+		// limelightResults.ifPresent(results -> {
+		// 	var targets = results.targets_Fiducials;
+		// 	System.out.println("Targets " + targets);
+		// 	Logger.recordOutput("NumberOfTargets", targets.length);
 
-		tagIds.forEach(id -> ids[i.getAndIncrement()] = id);
-		Logger.recordOutput("tagIds", ids);
 
-		inputs.tagIds = ids;
+		// 	if (targets.length == 0) {
+		// 		return;
+		// 	}
+		// 	var firstTarget = targets[0];
 
-		inputs.poseObservations = new PoseObservation[] {
-			new PoseObservation(
-				est.timestampSeconds, // TODO: Sync with latency?
-				new Pose3d(est.pose),
-				0,
-				est.tagCount,
-				est.avgTagDist,
-				PoseObservationType.MEGATAG_2
-			),
-			new PoseObservation(
-				est1.timestampSeconds, // TODO: Sync with latency?
-				new Pose3d(est1.pose),
-				est1.rawFiducials[0].ambiguity, // Using the first tag, should we avg?
-				est1.tagCount,
-				est1.avgTagDist,
-				PoseObservationType.MEGATAG_1
-			)
-		};
+		// 	inputs.latestTargetObservation = new TargetObservation(
+		// 			Rotation2d.fromDegrees(firstTarget.tx),
+		// 			Rotation2d.fromDegrees(firstTarget.ty));
+
+		// 	for (var tag : targets) {
+		// 		Logger.recordOutput("tag"+ tag.fiducialID, (int)tag.fiducialID);
+		// 		tagIds.add((int) tag.fiducialID);
+		// 	}
+		// });
+		inputs.setTagIds(tagIds.stream().mapToInt(Integer::intValue).toArray());
 	}
 }
