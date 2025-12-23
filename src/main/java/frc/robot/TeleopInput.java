@@ -1,6 +1,7 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.PS4Controller;
+import edu.wpi.first.wpilibj.XboxController;
+
 // WPILib Imports
 
 /**
@@ -16,7 +17,7 @@ public class TeleopInput {
 
 	/* ======================== Private variables ======================== */
 	// Input objects
-	private PS4Controller driveController;
+	private XboxController driveController;
 
 	/* ======================== Constructor ======================== */
 	/**
@@ -25,7 +26,7 @@ public class TeleopInput {
 	 * by WPILib until teleop mode.
 	 */
 	public TeleopInput() {
-		driveController = new PS4Controller(DRIVE_CONTROLLER_PORT);
+		driveController = new XboxController(DRIVE_CONTROLLER_PORT);
 	}
 
 	/* ======================== Public methods ======================== */
@@ -72,7 +73,7 @@ public class TeleopInput {
 	 * @return the pathfinding button pressed
 	 */
 	public boolean isPathfindButtonPressed() {
-		return driveController.getCircleButton();
+		return driveController.getBButton();
 	}
 
 	/**
@@ -81,7 +82,7 @@ public class TeleopInput {
 	 * @return true if the button is pressed, false otherwise
 	 */
 	public boolean isCCWReefSelectionChangeButtonPressed() {
-		return driveController.getL1ButtonPressed();
+		return driveController.getLeftBumperButtonPressed();
 	}
 
 	/**
@@ -90,7 +91,7 @@ public class TeleopInput {
 	 * @return true if the button is pressed, false otherwise
 	 */
 	public boolean isCWReefSelectionChangeButtonPressed() {
-		return driveController.getR1ButtonPressed();
+		return driveController.getRightBumperButtonPressed();
 	}
 
 	/**
@@ -98,7 +99,7 @@ public class TeleopInput {
 	 * @return true if the seed button is pressed, false otherwise
 	 */
 	public boolean isSeedButtonPressed() {
-		return driveController.getShareButton();
+		return driveController.getAButtonPressed();
 	}
 
 	/* ======================== Private methods ======================== */

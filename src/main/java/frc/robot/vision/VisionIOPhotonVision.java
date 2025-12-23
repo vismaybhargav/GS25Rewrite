@@ -49,6 +49,7 @@ public class VisionIOPhotonVision implements VisionIO {
 		// Read new camera observations
 		Set<Short> tagIds = new HashSet<>();
 		List<PoseObservation> poseObservations = new LinkedList<>();
+
 		for (var result : camera.getAllUnreadResults()) {
 			// Update latest target observation
 			if (result.hasTargets()) {
@@ -83,7 +84,7 @@ public class VisionIOPhotonVision implements VisionIO {
 				// Add tag IDs
 				tagIds.addAll(multitagResult.fiducialIDsUsed);
 
-				// Add observation
+				// Add pose observation
 				poseObservations.add(
 						new PoseObservation(
 								result.getTimestampSeconds(), // Timestamp

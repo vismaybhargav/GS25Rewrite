@@ -17,7 +17,8 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 // WPILib Imports
-import frc.robot.systems.DriveFSMSystem;
+import frc.robot.systems.Drivetrain;
+import frc.robot.systems.Superstructure;
 
 // Systems
 
@@ -39,7 +40,8 @@ public class Robot extends LoggedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private DriveFSMSystem driveSystem;
+	private Drivetrain driveSystem;
+	private Superstructure superstructure;
 	private Vision vision;
 
 	/**
@@ -70,7 +72,7 @@ public class Robot extends LoggedRobot {
 		input = new TeleopInput();
 
 		// Instantiate all systems here
-		driveSystem = new DriveFSMSystem();
+		driveSystem = new Drivetrain();
 
 		if (isReal()) {
 			if (Features.USE_LIMELIGHT) {
@@ -120,6 +122,8 @@ public class Robot extends LoggedRobot {
 								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
 			}
 		}
+
+		superstructure = new Superstructure(driveSystem);
 	}
 
 	@Override
@@ -135,11 +139,13 @@ public class Robot extends LoggedRobot {
 	public void teleopInit() {
 		System.out.println("-------- Teleop Init --------");
 		driveSystem.reset();
+		superstructure.reset();
 	}
 
 	@Override
 	public void teleopPeriodic() {
 		driveSystem.update(input);
+		superstructure.update(input);
 	}
 
 	@Override
