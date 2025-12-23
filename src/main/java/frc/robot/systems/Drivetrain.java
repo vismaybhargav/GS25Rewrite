@@ -59,8 +59,8 @@ public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Dr
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum DriveSystemState {
-		TELEOP,
-		PATHFIND
+		TELEOPING,
+		PATHFINDING
 	}
 
 	public enum DriveWantedState {
@@ -181,7 +181,7 @@ public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Dr
 	/* ======================== Public methods ======================== */
 	@Override
 	public void reset() {
-		setSystemState(DriveSystemState.TELEOP);
+		setSystemState(DriveSystemState.TELEOPING);
 		requestWantedState(DriveWantedState.TELEOP);
 
 		// Call one tick of update to ensure outputs reflect start state
@@ -214,10 +214,10 @@ public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Dr
 		});
 
 		switch (getSystemState()) {
-			case TELEOP:
+			case TELEOPING:
 				handleTeleopState(input);
 				break;
-			case PATHFIND:
+			case PATHFINDING:
 				if (isPathfindingFinished()) {
 					initalizePathfinding();
 				}
@@ -233,14 +233,14 @@ public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Dr
 	@Override
 	public DriveSystemState nextState(TeleopInput input) {
 		if (input == null) {
-			return DriveSystemState.TELEOP;
+			return DriveSystemState.TELEOPING;
 		}
 
 		switch (getWantedState()) {
 			case TELEOP:
-				return DriveSystemState.TELEOP;
+				return DriveSystemState.TELEOPING;
 			case PATHFIND:
-				return DriveSystemState.PATHFIND;
+				return DriveSystemState.PATHFINDING;
 			default:
 				throw new IllegalStateException("Invalid State: " + getWantedState().toString());
 		}
