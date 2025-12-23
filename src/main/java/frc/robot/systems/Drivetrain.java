@@ -48,9 +48,6 @@ import frc.robot.Robot;
 import frc.robot.FieldHelper.BranchSide;
 import frc.robot.FieldHelper.ReefSide;
 
-// WPILib Imports
-
-
 // Robot Imports
 import frc.robot.TeleopInput;
 import frc.robot.generated.LocalADStarAK;
@@ -58,13 +55,16 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.simulation.SimSwerveDrivetrainConfig;
 
-
-public class DriveFSMSystem {
+public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Drivetrain.DriveWantedState> {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
-	public enum DriveFSMState {
+	public enum DriveSystemState {
 		TELEOP,
-		PRE_PATHFIND,
+		PATHFIND
+	}
+
+	public enum DriveWantedState {
+		TELEOP,
 		PATHFIND
 	}
 
@@ -74,7 +74,6 @@ public class DriveFSMSystem {
 	// 3/4 rps angle velo
 
 	/* ======================== Private variables ======================== */
-	private DriveFSMState currentState;
 	private CommandSwerveDrivetrain drivetrain;
 
 	private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -116,7 +115,7 @@ public class DriveFSMSystem {
 	private GoalEndState goalEndState = new GoalEndState(0, targetPose.getRotation());
 	private PathPlannerTrajectory currentTrajectory = null;
 	private PathPlannerPath currentPath = null;
-	private boolean finish = true;
+	private boolean pathfindingFinished = true;
 
 	private PathConstraints pathConstraints = new PathConstraints(
 		MAX_SPEED.in(MetersPerSecond),
@@ -131,12 +130,13 @@ public class DriveFSMSystem {
 	// be private to their owner system and may not be used elsewhere.
 
 	/* ======================== Constructor ======================== */
+
 	/**
 	 * Create FSMSystem and initialize to starting state. Also perform any
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public DriveFSMSystem() {
+	public Drivetrain() {
 		// Perform hardware init
 		drivetrain = TunerConstants.createDrivetrain();
 
@@ -179,49 +179,18 @@ public class DriveFSMSystem {
 	}
 
 	/* ======================== Public methods ======================== */
-	/**
-	 * Return current FSM state.
-	 *
-	 * @return Current FSM state
-	 */
-	public DriveFSMState getCurrentState() {
-		return currentState;
-	}
-
-	/**
-	 * Get the current state's string value.
-	 *
-	 * @return current state string value
-	 */
-	@AutoLogOutput(key = "DriveFSM/Current State")
-	public String getCurrentStateName() {
-		return currentState.name();
-	}
-
-	/**
-	 * Reset this system to its start state. This may be called from mode init
-	 * when the robot is enabled.
-	 *
-	 * Note this is distinct from the one-time initialization in the constructor
-	 * as it may be called multiple times in a boot cycle,
-	 * Ex. if the robot is enabled, disabled, then reenabled.
-	 */
+	@Override
 	public void reset() {
-		currentState = DriveFSMState.TELEOP;
+		setSystemState(DriveSystemState.TELEOP);
+		requestWantedState(DriveWantedState.TELEOP);
 
 		// Call one tick of update to ensure outputs reflect start state
 		update(null);
 	}
 
-	/**
-	 * Update FSM based on new inputs. This function only calls the FSM state
-	 * specific handlers.
-	 *
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
-	 */
+	@Override
 	public void update(TeleopInput input) {
-		Logger.recordOutput("Timer", timer.get());
+		Logger.recordOutput("Drivetrain/Current State", getSystemState());
 		drivetrain.periodic();
 
 		if (input != null && input.isCCWReefSelectionChangeButtonPressed()) {
@@ -244,60 +213,36 @@ public class DriveFSMSystem {
 			Logger.recordOutput("Vision/Error", error);
 		});
 
-		switch (currentState) {
+		switch (getSystemState()) {
 			case TELEOP:
 				handleTeleopState(input);
 				break;
 			case PATHFIND:
+				if (isPathfindingFinished()) {
+					initalizePathfinding();
+				}
 				handlePathfindState();
 				break;
 			default:
-				throw new IllegalStateException("Invalid state: " + currentState.toString());
+				throw new IllegalStateException("Invalid state: " + getSystemState().toString());
 		}
-		currentState = nextState(input);
-	}
-
-	/**
-	 * Performs specific action based on the autoState passed in.
-	 */
-	public void updateAutonomous() {
+		setSystemState(nextState(input));
 	}
 
 	/* ======================== Private methods ======================== */
-	/**
-	 * Decide the next state to transition to. This is a function of the inputs
-	 * and the current state of this FSM. This method should not have any side
-	 * effects on outputs. In other words, this method should only read or get
-	 * values to decide what state to go to.
-	 *
-	 * @param input Global TeleopInput if robot in teleop mode or null if
-	 *              the robot is in autonomous mode.
-	 * @return FSM state for the next iteration
-	 */
-	private DriveFSMState nextState(TeleopInput input) {
-
+	@Override
+	public DriveSystemState nextState(TeleopInput input) {
 		if (input == null) {
-			return DriveFSMState.TELEOP;
+			return DriveSystemState.TELEOP;
 		}
 
-		switch (currentState) {
+		switch (getWantedState()) {
 			case TELEOP:
-				if (input.isPathfindButtonPressed()) {
-					if (isPathfindingFinished()) {
-						initalizePathfinding();
-					}
-					return DriveFSMState.PATHFIND;
-				} else {
-					return DriveFSMState.TELEOP;
-				}
+				return DriveSystemState.TELEOP;
 			case PATHFIND:
-				if (input.isPathfindButtonPressed()) {
-					return DriveFSMState.PATHFIND;
-				} else {
-					return DriveFSMState.TELEOP;
-				}
+				return DriveSystemState.PATHFIND;
 			default:
-				throw new IllegalStateException("Invalid State: " + currentState.toString());
+				throw new IllegalStateException("Invalid State: " + getWantedState().toString());
 		}
 	}
 
@@ -312,7 +257,7 @@ public class DriveFSMSystem {
 			return;
 		}
 
-		finish = true; // Resets the pathfinding, so that we
+		pathfindingFinished = true; // Resets the pathfinding, so that we
 						// re-initialize when going into the pathfinding state.
 
 		if (input.isSeedButtonPressed()) {
@@ -343,7 +288,7 @@ public class DriveFSMSystem {
 	 * pose.
 	 */
 	public void handlePathfindState() {
-		if (finish) {
+		if (pathfindingFinished) {
 			return;
 		}
 
@@ -367,7 +312,7 @@ public class DriveFSMSystem {
 				currentTrajectory = new PathPlannerTrajectory(
 						currentPath, currSpeeds, currPose.getRotation(), drivetrain.getPPConfig());
 				if (!Double.isFinite(currentTrajectory.getTotalTimeSeconds())) {
-					finish = true;
+					pathfindingFinished = true;
 					return;
 				}
 
@@ -455,7 +400,7 @@ public class DriveFSMSystem {
 	 */
 	public void initalizePathfinding() {
 		currentTrajectory = null;
-		finish = false;
+		pathfindingFinished = false;
 		timeOffset = 0;
 
 		Pose2d currentPose = getPose();
@@ -473,7 +418,7 @@ public class DriveFSMSystem {
 							.withWheelForceFeedforwardsX(ff.robotRelativeForcesX())
 							.withWheelForceFeedforwardsY(ff.robotRelativeForcesY()));
 
-			finish = true;
+			pathfindingFinished = true;
 		} else {
 			Pathfinding.setStartPosition(currentPose.getTranslation());
 			Pathfinding.setGoalPosition(targetPose.getTranslation());
@@ -485,9 +430,9 @@ public class DriveFSMSystem {
 	 *
 	 * @return true if the pathfinding is done
 	 */
-	@AutoLogOutput(key = "Pathfinding finished")
+	@AutoLogOutput(key = "Drivetrain/Pathfinding Finished")
 	public boolean isPathfindingFinished() {
-		if (finish) {
+		if (pathfindingFinished) {
 			return true;
 		}
 
@@ -534,7 +479,7 @@ public class DriveFSMSystem {
 	 *
 	 * @return pose of the drivetrain
 	 */
-	@AutoLogOutput(key = "Robot State/Pose")
+	@AutoLogOutput(key = "Drivetrain/Pose")
 	public Pose2d getPose() {
 		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			return simDrivetrain.getMapleSimDrive().getSimulatedDriveTrainPose();
@@ -543,21 +488,11 @@ public class DriveFSMSystem {
 	}
 
 	/**
-	 * Get the odometry pose of the drivetrain.
-	 *
-	 * @return odometry pose of the drivetrain
-	 */
-	@AutoLogOutput(key = "Odometry/Pose")
-	public Pose2d getOdometryPose() {
-		return drivetrain.getOdometryPose();
-	}
-
-	/**
 	 * Get the chassis speeds of the drivetrain.
 	 *
 	 * @return the drivetrain chassis speeds
 	 */
-	@AutoLogOutput(key = "Odometry/Swerve/Chassis Speeds")
+	@AutoLogOutput(key = "Drivetrain/Swerve/Chassis Speeds")
 	public ChassisSpeeds getChassisSpeeds() {
 		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			return simDrivetrain
@@ -572,7 +507,7 @@ public class DriveFSMSystem {
 	 *
 	 * @return the swerve module states
 	 */
-	@AutoLogOutput(key = "Odometry/Swerve/States/Measured")
+	@AutoLogOutput(key = "Drivetrain/Swerve/States/Measured")
 	public SwerveModuleState[] getModuleStates() {
 		return drivetrain.getState().ModuleStates;
 	}
@@ -582,7 +517,7 @@ public class DriveFSMSystem {
 	 *
 	 * @return drivetrain targets
 	 */
-	@AutoLogOutput(key = "Odometry/Swerve/States/Targets")
+	@AutoLogOutput(key = "Drivetrain/Swerve/States/Targets")
 	public SwerveModuleState[] getModuleTargets() {
 		return drivetrain.getState().ModuleTargets;
 	}
@@ -592,7 +527,7 @@ public class DriveFSMSystem {
 	 *
 	 * @return the module positions
 	 */
-	@AutoLogOutput(key = "Odometry/Swerve/Positions")
+	@AutoLogOutput(key = "Drivetrain/Swerve/Positions")
 	public SwerveModulePosition[] getModulePositions() {
 		if (Robot.isSimulation() && Features.MAPLE_SIM_ENABLED) {
 			SwerveModuleSimulation[] simModules = simDrivetrain.getMapleSimDrive().getModules();
@@ -618,7 +553,7 @@ public class DriveFSMSystem {
 	 *
 	 * @return Target alignment pose
 	 */
-	@AutoLogOutput(key = "ReefSelectorTarget")
+	@AutoLogOutput(key = "Drivetrain/ReefSelectorTarget")
 	public Pose2d getTargetPose() {
 		return targetPose;
 	}
@@ -636,7 +571,7 @@ public class DriveFSMSystem {
 	 *
 	 * @return ATs for the test field.
 	 */
-	@AutoLogOutput(key = "TestFieldATs")
+	@AutoLogOutput(key = "Drivetrain/TestFieldATs")
 	public Pose3d[] logTestFieldATs() {
 		return Features.USE_TEST_FIELD ? new Pose3d[] {
 				TAG_LAYOUT.getTagPose(VisionConstants.TAG_ID_TEST_REEF_RIGHT)
