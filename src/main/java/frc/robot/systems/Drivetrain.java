@@ -191,7 +191,9 @@ public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Dr
 
 	@Override
 	public void update(TeleopInput input) {
+		Logger.recordOutput("Drivetrain/Wanted State", getWantedState());
 		Logger.recordOutput("Drivetrain/Current State", getSystemState());
+
 		drivetrain.periodic();
 
 		if (input != null && input.isCCWReefSelectionChangeButtonPressed()) {
