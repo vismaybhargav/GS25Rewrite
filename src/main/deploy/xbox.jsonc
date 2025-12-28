@@ -1,0 +1,14 @@
+// this is an example driver profile for an xbox driver
+{
+	"controller": "xbox",
+	"port": 0,
+	"mappings": {
+		// mappings here will override the default mappings
+		// "DRIVE_RIGHT_X": "kRightY"
+
+		// put valid mappings for controllers that are incompatible with the defaults
+		"PATHFIND": "kB",
+		"CCW_REEF_SELECTION_CHANGE": "kA",
+		"CW_REEF_SELECTION_CHANGE": "kY"
+	}
+}

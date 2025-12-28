@@ -16,8 +16,13 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
-// WPILib Imports
+import frc.robot.input.InputTypes;
+import frc.robot.input.TeleopInput;
+import frc.robot.input.InputTypes.Axes;
+import frc.robot.input.InputTypes.Buttons;
 import frc.robot.systems.DriveFSMSystem;
+
+// WPILib Imports
 
 // Systems
 
@@ -33,7 +38,7 @@ import frc.robot.vision.VisionIOPhotonVisionSim;
  * each mode, as described in the TimedRobot documentation.
  */
 public class Robot extends LoggedRobot {
-	private TeleopInput input;
+	private TeleopInput<Buttons, Axes> input;
 
 	// Systems
 	private DriveFSMSystem driveSystem;
@@ -64,7 +69,7 @@ public class Robot extends LoggedRobot {
 		Logger.start(); // Start Logging!
 
 
-		input = new TeleopInput();
+		input = new TeleopInput<>(InputTypes.Buttons.class, InputTypes.Axes.class);
 
 		// Instantiate all systems here
 		driveSystem = new DriveFSMSystem();

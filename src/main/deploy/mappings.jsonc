@@ -1,0 +1,33 @@
+{
+	// defaults is technically unneccesary if everyone makes their own
+	"defaults": [
+		{
+			"controller": "ps4",
+			"port": 0,
+			"mappings": {
+				// compatible for ps4, ps5, XBox, but Joystick requires overrides
+				"DRIVE_LEFT_X": "kLeftX",
+				"DRIVE_RIGHT_X": "kRightX",
+				"DRIVE_LEFT_Y": "kLeftY",
+
+				// compatible for ps4, ps5, but Xbox and Json require overrides
+				// for example, these will not get mapped on xbox
+				"PATHFIND": "kCross",
+				"CCW_REEF_SELECTION_CHANGE": "kSquare",
+				"CW_REEF_SELECTION_CHANGE": "kCircle"
+			}
+		},
+		{
+			"controller": "ps4",
+			"port": 1,
+			"mappings": {
+
+			}
+		}
+	],
+	// driver specific profiles, only the active driver(s) should be uncommented
+	"profiles": [
+		// "sharvil.json",
+		"xbox.json"
+	]
+}

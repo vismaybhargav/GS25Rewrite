@@ -41,14 +41,12 @@ import frc.robot.CommandSwerveDrivetrain;
 import frc.robot.Features;
 import frc.robot.Robot;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-
-// WPILib Imports
-
-
-// Robot Imports
-import frc.robot.TeleopInput;
 import frc.robot.generated.LocalADStarAK;
 import frc.robot.generated.TunerConstants;
+import frc.robot.input.InputTypes;
+import frc.robot.input.TeleopInput;
+import frc.robot.input.InputTypes.Axes;
+import frc.robot.input.InputTypes.Buttons;
 import frc.robot.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.simulation.SimSwerveDrivetrainConfig;
 import frc.robot.Constants.AutoConstants;
@@ -223,12 +221,12 @@ public class DriveFSMSystem {
 	 * @param input Global TeleopInput if robot in teleop mode or null if
 	 *        the robot is in autonomous mode.
 	 */
-	public void update(TeleopInput input) {
+	public void update(TeleopInput<Buttons, Axes> input) {
 		Logger.recordOutput("Timer", timer.get());
 
-		if (input != null && input.isCCWReefSelectionChangeButtonPressed()) {
+		if (input != null && input.getButtonPressed(Buttons.CCW_REEF_SELECTION_CHANGE)) {
 			handleCCWReefSelect();
-		} else if (input != null && input.isCWReefSelectionChangeButtonPressed()) {
+		} else if (input != null && input.getButtonPressed(Buttons.CW_REEF_SELECTION_CHANGE)) {
 			handleCWReefSelect();
 		}
 
@@ -242,6 +240,7 @@ public class DriveFSMSystem {
 			default:
 				throw new IllegalStateException("Invalid state: " + currentState.toString());
 		}
+		Logger.recordOutput("drive pose", getPose());
 		currentState = nextState(input);
 	}
 
@@ -260,7 +259,7 @@ public class DriveFSMSystem {
 	 *        the robot is in autonomous mode.
 	 * @return FSM state for the next iteration
 	 */
-	private DriveFSMState nextState(TeleopInput input) {
+	private DriveFSMState nextState(TeleopInput<InputTypes.Buttons, InputTypes.Axes> input) {
 
 		if (input == null) {
 			return DriveFSMState.TELEOP;
@@ -268,7 +267,7 @@ public class DriveFSMSystem {
 
 		switch (currentState) {
 			case TELEOP:
-				if (input.isPathfindButtonPressed()) {
+				if (input.getButtonPressed(Buttons.PATHFIND)) {
 					if (isPathfindingFinished()) {
 						initalizePathfinding();
 					}
@@ -277,7 +276,7 @@ public class DriveFSMSystem {
 					return DriveFSMState.TELEOP;
 				}
 			case PATHFIND:
-				if (input.isPathfindButtonPressed()) {
+				if (input.getButtonPressed(Buttons.PATHFIND)) {
 					return DriveFSMState.PATHFIND;
 				} else {
 					return DriveFSMState.TELEOP;
@@ -292,7 +291,7 @@ public class DriveFSMSystem {
 	 * Handles the TELEOP_STATE, when the robot is controlled by the driver.
 	 * @param input the input of the driver controller
 	 */
-	public void handleTeleopState(TeleopInput input) {
+	public void handleTeleopState(TeleopInput<Buttons, Axes> input) {
 		if (input == null) {
 			return;
 		}
@@ -301,17 +300,17 @@ public class DriveFSMSystem {
 						// re-initialize when going into the pathfinding state.
 
 		double xSpeed = MathUtil.applyDeadband(
-			-input.getDriveLeftJoystickY(),
+			-input.getAxis(Axes.DRIVE_LEFT_Y),
 			DriveConstants.TRANSLATION_DEADBAND
 		) * MAX_SPEED.in(MetersPerSecond);
 
 		double ySpeed = MathUtil.applyDeadband(
-			-input.getDriveLeftJoystickX(),
+			-input.getAxis(Axes.DRIVE_LEFT_X),
 			DriveConstants.TRANSLATION_DEADBAND
 		) * MAX_SPEED.in(MetersPerSecond);
 
 		double thetaSpeed = MathUtil.applyDeadband(
-			-input.getDriveRightJoystickX(),
+			-input.getAxis(Axes.DRIVE_RIGHT_X),
 			DriveConstants.ROTATION_DEADBAND
 		) * MAX_ANGULAR_RATE.in(RadiansPerSecond);
 
