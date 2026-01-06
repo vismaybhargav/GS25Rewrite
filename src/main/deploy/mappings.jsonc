@@ -28,6 +28,6 @@
 	// driver specific profiles, only the active driver(s) should be uncommented
 	"profiles": [
 		// "sharvil.json",
-		"xbox.json"
+		"xbox.jsonc"
 	]
 }

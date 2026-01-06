@@ -26,9 +26,14 @@ import edu.wpi.first.wpilibj.XboxController;
 /**
  * Common class for providing driver inputs during Teleop.
  *
+ *
  * This class is the sole owner of WPILib input objects and is responsible for
  * polling input values. Systems may query TeleopInput via its getter methods
  * for inputs by value, but may not access the internal input objects.
+ *
+ * @param <B> the class of the buttons enum
+ * @param <A> the class of the axes enum
+ *
  */
 public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 
@@ -41,10 +46,10 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 			@Override
 			void supplyInputs() {
 				for (var button : PS4Controller.Button.values()) {
-					buttonMappings.put(button.name(), button.value);
+					getButtonMappings().put(button.name(), button.value);
 				}
 				for (var axis : PS4Controller.Axis.values()) {
-					axesMappings.put(axis.name(), axis.value);
+					getButtonMappings().put(axis.name(), axis.value);
 				}
 			}
 		},
@@ -52,10 +57,10 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 			@Override
 			void supplyInputs() {
 				for (var button : PS5Controller.Button.values()) {
-					buttonMappings.put(button.name(), button.value);
+					getButtonMappings().put(button.name(), button.value);
 				}
 				for (var axis : PS5Controller.Axis.values()) {
-					axesMappings.put(axis.name(), axis.value);
+					getAxesMappings().put(axis.name(), axis.value);
 				}
 			}
 		},
@@ -63,10 +68,10 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 			@Override
 			void supplyInputs() {
 				for (var button : Joystick.ButtonType.values()) {
-					buttonMappings.put(button.name(), button.value);
+					getButtonMappings().put(button.name(), button.value);
 				}
 				for (var axis : Joystick.AxisType.values()) {
-					axesMappings.put(axis.name(), axis.value);
+					getAxesMappings().put(axis.name(), axis.value);
 				}
 			}
 		},
@@ -74,26 +79,42 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 			@Override
 			void supplyInputs() {
 				for (var button : XboxController.Button.values()) {
-					buttonMappings.put(button.name(), button.value);
+					getButtonMappings().put(button.name(), button.value);
 				}
 				for (var axis : XboxController.Axis.values()) {
-					axesMappings.put(axis.name(), axis.value);
+					getAxesMappings().put(axis.name(), axis.value);
 				}
 			}
 		};
 
-		String name;
-		Function<Integer, GenericHID> generator;
-		Map<String, Integer> buttonMappings = new HashMap<>();
-		Map<String, Integer> axesMappings = new HashMap<>();
-		
-		ControllerType(String name, Function<Integer, GenericHID> generator) {
-			this.name = name;
-			this.generator = generator;
-			supplyInputs();
+		private String name;
+		private Function<Integer, GenericHID> generator;
+		private Map<String, Integer> buttonMappings = new HashMap<>();
+		private Map<String, Integer> axesMappings = new HashMap<>();
+
+		@SuppressWarnings("unused")
+		String getName() {
+			return name;
 		}
 
-		
+		@SuppressWarnings("unused")
+		Function<Integer, GenericHID> getGenerator() {
+			return generator;
+		}
+
+		Map<String, Integer> getButtonMappings() {
+			return buttonMappings;
+		}
+
+		Map<String, Integer> getAxesMappings() {
+			return axesMappings;
+		}
+
+		ControllerType(String controllerName, Function<Integer, GenericHID> genericHIDGenerator) {
+			this.name = controllerName;
+			this.generator = genericHIDGenerator;
+			supplyInputs();
+		}
 
 		abstract void supplyInputs();
 	}
@@ -114,16 +135,19 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 	 * Create a TeleopInput and register input devices. Note that while inputs
 	 * are registered at robot initialization, valid values will not be provided
 	 * by WPILib until teleop mode.
+	 *
+	 * @param buttonTypes the type of buttons, which should be an enum of button names used in the mappings file.
+	 * @param axesTypes the type of axes, which should be an enum of axes names used in the mappings file.
 	 */
 	@SuppressWarnings("unchecked")
-	public TeleopInput(Class<B> buttons, Class<A> axes) {
-		this.buttons = buttons;
-		this.axes = axes;
+	public TeleopInput(Class<B> buttonTypes, Class<A> axesTypes) {
+		this.buttons = buttonTypes;
+		this.axes = axesTypes;
 		buttonSuppliers = new HashMap<>();
 		axesSuppliers = new HashMap<>();
 		Path mappingsFile = Filesystem.getDeployDirectory().toPath().resolve("mappings.json");
 		Gson gson = new Gson();
-		var type = new TypeToken<Map<String, Object>>(){}.getType();
+		var type = new TypeToken<Map<String, Object>>() { }.getType();
 		Map<String, Object> jsonMappings;
 		try {
 			var fileReader = new JsonReader(new FileReader(mappingsFile.toFile()));
@@ -137,7 +161,6 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 				Map<String, Object> overrideJsonMappings = gson.fromJson(new FileReader(overrideFile.toFile()), type);
 				handleEntry(overrideJsonMappings);
 			}
-			
 		} catch (JsonIOException | JsonSyntaxException | FileNotFoundException | ClassCastException e) {
 			throw new RuntimeException("Unable to load controller mappings", e);
 		}
@@ -148,18 +171,38 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 	// Method names should be descriptive of the behavior, so the
 	// control mapping is hidden from other classes.
 
+	/**
+	 * Gets the button value for a specific button.
+	 * @param key the button identifier
+	 * @return the button value
+	 */
 	public boolean getButtonValue(B key) {
 		return buttonSuppliers.get(key).get(ButtonInputMethods.GET).get();
 	}
 
+	/**
+	 * Gets the button pressed value for a specific button.
+	 * @param key the button identifier
+	 * @return the button pressed value
+	 */
 	public boolean getButtonPressed(B key) {
 		return buttonSuppliers.get(key).get(ButtonInputMethods.PRESSED).get();
 	}
 
+	/**
+	 * Gets the button released value for a specific button.
+	 * @param key the button identifier
+	 * @return the button released value
+	 */
 	public boolean getButtonReleased(B key) {
 		return buttonSuppliers.get(key).get(ButtonInputMethods.RELEASED).get();
 	}
 
+	/**
+	 * Gets the axis value for a specific axis.
+	 * @param key the axis identifier
+	 * @return the axis value
+	 */
 	public double getAxis(A key) {
 		return axesSuppliers.get(key).get();
 	}
@@ -182,10 +225,10 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 		GenericHID controller;
 		controller = controllerType.generator.apply(port);
 		for (var mapping : mappingsStrings.entrySet()) {
-			boolean unknownMapping = !controllerType.axesMappings.containsKey(mapping.getValue()) && 
-									!controllerType.buttonMappings.containsKey(mapping.getValue());
+			boolean unknownMapping = !controllerType.axesMappings.containsKey(mapping.getValue())
+									&& !controllerType.buttonMappings.containsKey(mapping.getValue());
 			if (unknownMapping) {
-				System.out.printf("Unknown mapping: %s\n" + mapping.getValue());
+				System.out.printf("Unknown mapping: %s\n", mapping.getValue());
 			}
 			var axis = returnResultOrNull((val) -> Enum.valueOf(axes, val), mapping.getKey());
 			if (axis != null) {
