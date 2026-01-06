@@ -145,7 +145,7 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 		this.axes = axesTypes;
 		buttonSuppliers = new HashMap<>();
 		axesSuppliers = new HashMap<>();
-		Path mappingsFile = Filesystem.getDeployDirectory().toPath().resolve("mappings.json");
+		Path mappingsFile = Filesystem.getDeployDirectory().toPath().resolve("mappings.jsonc");
 		Gson gson = new Gson();
 		var type = new TypeToken<Map<String, Object>>() { }.getType();
 		Map<String, Object> jsonMappings;
@@ -155,7 +155,7 @@ public final class TeleopInput<B extends Enum<B>, A extends Enum<A>> {
 			jsonMappings = gson.fromJson(fileReader, type);
 			var defaults = (List<Map<String, Object>>) jsonMappings.get("defaults");
 			defaults.forEach(this::handleEntry);
-			List<String> overrides = (List<String>) jsonMappings.get("overrides");
+			List<String> overrides = (List<String>) jsonMappings.get("profiles");
 			for (var override : overrides) {
 				Path overrideFile = Filesystem.getDeployDirectory().toPath().resolve(override);
 				Map<String, Object> overrideJsonMappings = gson.fromJson(new FileReader(overrideFile.toFile()), type);
