@@ -68,9 +68,9 @@ public class DriveFSMSystem {
 		PATHFIND
 	}
 
-	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS;
+	private static final LinearVelocity MAX_SPEED = TunerConstants.SPEED_AT_12_VOLTS.times(0.1);
 		// kSpeedAt12Volts desired top speed
-	private static final AngularVelocity MAX_ANGULAR_RATE = DriveConstants.MAX_ANGULAR_VELO_RPS;
+	private static final AngularVelocity MAX_ANGULAR_RATE = DriveConstants.MAX_ANGULAR_VELO_RPS.times(0.1);
 		//3/4 rps angle velo
 
 	/* ======================== Private variables ======================== */

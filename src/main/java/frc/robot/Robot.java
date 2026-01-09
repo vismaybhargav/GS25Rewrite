@@ -3,10 +3,10 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
-import static frc.robot.Constants.VisionConstants.REEF_CAMERA_NAME;
-import static frc.robot.Constants.VisionConstants.ROBOT_TO_REEF_CAM;
-import static frc.robot.Constants.VisionConstants.ROBOT_TO_STATION_CAM;
-import static frc.robot.Constants.VisionConstants.STATION_CAMERA_NAME;
+// import static frc.robot.Constants.VisionConstants.REEF_CAMERA_NAME;
+// import static frc.robot.Constants.VisionConstants.ROBOT_TO_REEF_CAM;
+// import static frc.robot.Constants.VisionConstants.ROBOT_TO_STATION_CAM;
+// import static frc.robot.Constants.VisionConstants.STATION_CAMERA_NAME;
 
 import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
@@ -22,11 +22,11 @@ import frc.robot.systems.DriveFSMSystem;
 // Systems
 
 // Local
-import frc.robot.vision.Vision;
-import frc.robot.vision.VisionIOPhotonPoseEstimator;
-import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
-import frc.robot.vision.VisionIOPhotonVision;
-import frc.robot.vision.VisionIOPhotonVisionSim;
+// import frc.robot.vision.Vision;
+// import frc.robot.vision.VisionIOPhotonPoseEstimator;
+// import frc.robot.vision.VisionIOPhotonPoseEstimatorSim;
+// import frc.robot.vision.VisionIOPhotonVision;
+// import frc.robot.vision.VisionIOPhotonVisionSim;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -37,7 +37,7 @@ public class Robot extends LoggedRobot {
 
 	// Systems
 	private DriveFSMSystem driveSystem;
-	private Vision vision;
+	// private Vision vision;
 
 	/**
 	 * This function is run when the robot is first started up and should be used for any
@@ -69,35 +69,35 @@ public class Robot extends LoggedRobot {
 		// Instantiate all systems here
 		driveSystem = new DriveFSMSystem();
 
-		if (isReal()) {
-			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
-				vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-						new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
-			} else {
-				vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
-						new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
-			}
-		} else {
-			if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
-				vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						new VisionIOPhotonPoseEstimatorSim(
-								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
-						new VisionIOPhotonPoseEstimatorSim(
-								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
-			} else {
-				vision = new Vision(
-						driveSystem::addVisionMeasurement,
-						new VisionIOPhotonVisionSim(
-								REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
-						new VisionIOPhotonVisionSim(
-								STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
-			}
-		}
+		// if (isReal()) {
+		// 	if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+		// 		vision = new Vision(
+		// 				driveSystem::addVisionMeasurement,
+		// 				new VisionIOPhotonPoseEstimator(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+		// 				new VisionIOPhotonPoseEstimator(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+		// 	} else {
+		// 		vision = new Vision(
+		// 				driveSystem::addVisionMeasurement,
+		// 				new VisionIOPhotonVision(REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM),
+		// 				new VisionIOPhotonVision(STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM));
+		// 	}
+		// } else {
+		// 	if (Features.PHOTON_POSE_ESTIMATOR_ENABLED) {
+		// 		vision = new Vision(
+		// 				driveSystem::addVisionMeasurement,
+		// 				new VisionIOPhotonPoseEstimatorSim(
+		// 						REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
+		// 				new VisionIOPhotonPoseEstimatorSim(
+		// 						STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
+		// 	} else {
+		// 		vision = new Vision(
+		// 				driveSystem::addVisionMeasurement,
+		// 				new VisionIOPhotonVisionSim(
+		// 						REEF_CAMERA_NAME, ROBOT_TO_REEF_CAM, driveSystem::getPose),
+		// 				new VisionIOPhotonVisionSim(
+		// 						STATION_CAMERA_NAME, ROBOT_TO_STATION_CAM, driveSystem::getPose));
+		// 	}
+		// }
 	}
 
 	@Override
@@ -170,6 +170,6 @@ public class Robot extends LoggedRobot {
 	// Do not use robotPeriodic. Use mode specific periodic methods instead.
 	@Override
 	public void robotPeriodic() {
-		vision.periodic();
+		// vision.periodic();
 	}
 }

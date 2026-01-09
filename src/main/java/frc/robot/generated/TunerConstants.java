@@ -117,7 +117,7 @@ public class TunerConstants {
 	private static final boolean INVERT_LEFT_SIDE = false;
 	private static final boolean INVERT_RIGHT_SIDE = true;
 
-	private static final int PIGEON_ID = 13;
+	private static final int PIGEON_ID = 1; //13;
 
 	// These are only used for simulation
 	private static final MomentOfInertia STEER_INERTIA = KilogramSquareMeters.of(0.01);
@@ -156,9 +156,9 @@ public class TunerConstants {
 
 
 	// Front Left
-	private static final int FL_DRIVE_MOTOR_ID = 3;
-	private static final int FL_STEER_MOTOR_ID = 4;
-	private static final int FL_ENCODER_ID = 10;
+	private static final int FL_DRIVE_MOTOR_ID = 6; //3;
+	private static final int FL_STEER_MOTOR_ID = 13; //4;
+	private static final int FL_ENCODER_ID = 4; //10;
 	private static final Angle FL_ENCODER_OFFSET = Rotations.of(0.357177734375);
 	private static final boolean FL_STEER_MOTOR_INV = true;
 	private static final boolean FL_ENCODER_INV = false;
@@ -167,9 +167,9 @@ public class TunerConstants {
 	private static final Distance FL_Y_POS = Inches.of(11.378);
 
 	// Front Right
-	private static final int FR_DRIVE_MOTOR_ID = 5;
-	private static final int FR_STEER_MOTOR_ID = 6;
-	private static final int FR_RIGHT_ENCODER_ID = 11;
+	private static final int FR_DRIVE_MOTOR_ID = 8; //5;
+	private static final int FR_STEER_MOTOR_ID = 11; //6;
+	private static final int FR_RIGHT_ENCODER_ID = 2; //11;
 	private static final Angle FR_ENCODER_OFFSET = Rotations.of(0.279052734375);
 	private static final boolean FR_STEER_MOTOR_INV = true;
 	private static final boolean FR_ENCODER_INV = false;
@@ -178,9 +178,9 @@ public class TunerConstants {
 	private static final Distance FR_Y_POS = Inches.of(-11.378);
 
 	// Back Left
-	private static final int BL_DRIVE_MOTOR_ID = 1;
-	private static final int BL_STEER_MOTOR_ID = 2;
-	private static final int BL_ENCODER_ID = 9;
+	private static final int BL_DRIVE_MOTOR_ID = 7; //1;
+	private static final int BL_STEER_MOTOR_ID = 12; //2;
+	private static final int BL_ENCODER_ID = 3; //9;
 	private static final Angle BL_ENCODER_OFFSET = Rotations.of(-0.076171875);
 	private static final boolean BL_STEER_MOTOR_INV = true;
 	private static final boolean BL_ENCODER_INV = false;
@@ -189,9 +189,9 @@ public class TunerConstants {
 	private static final Distance BL_Y_POS = Inches.of(11.378);
 
 	// Back Right
-	private static final int BR_DRIVE_MOTOR_ID = 7;
-	private static final int BR_STEER_MOTOR_ID = 8;
-	private static final int BR_ENCODER_ID = 12;
+	private static final int BR_DRIVE_MOTOR_ID = 10; //7;
+	private static final int BR_STEER_MOTOR_ID = 9; //8;
+	private static final int BR_ENCODER_ID = 5; //12;
 	private static final Angle BR_ENCODER_OFFSET = Rotations.of(0.052490234375);
 	private static final boolean BR_RIGHT_STEER_MOTOR_INV = true;
 	private static final boolean BR_ENCODER_INV = false;
