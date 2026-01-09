@@ -1,8 +1,9 @@
 package frc.robot.systems;
 
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.TeleopInput;
 
-public abstract class SingleSetFSMSystem<S extends Enum<S>> {
+public abstract class SingleSetFSMSystem<S extends Enum<S>> extends SubsystemBase {
 	private S systemState;
 
 	/**

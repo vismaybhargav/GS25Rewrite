@@ -15,6 +15,36 @@ public class TeleopInput {
 	/* ======================== Constants ======================== */
 	private static final int DRIVE_CONTROLLER_PORT = 0;
 
+	public enum ControllerDPad {
+		UP(0),
+		DOWN(180),
+		LEFT(270),
+		RIGHT(90),
+		TOP_LEFT(315),
+		TOP_RIGHT(45),
+		BOTTOM_LEFT(225),
+		BOTTOM_RIGHT(135),
+		NONE(-1);
+
+		private final int code;
+
+		/**
+		 * Constructor for DPad direction with no code (e.g., BOTTOM_LEFT, BOTTOM_RIGHT).
+		 * @param theCode
+		 */
+		ControllerDPad(int theCode) {
+			code = theCode;
+		}
+
+		/**
+		 * Get the code associated with the DPad direction.
+		 * @return The code
+		 */
+		public int getCode() {
+			return code;
+		}
+	}
+
 	/* ======================== Private variables ======================== */
 	// Input objects
 	private XboxController driveController;
@@ -99,6 +129,54 @@ public class TeleopInput {
 	 * @return true if the seed button is pressed, false otherwise
 	 */
 	public boolean isSeedButtonPressed() {
+		return driveController.getAButtonPressed();
+	}
+
+	/**
+	 * Checks if the elevator up button is pressed.
+	 * @return true if the elevator up button is pressed, false otherwise
+	 */
+	public boolean isElevatorUpPressed() {
+		return driveController.getPOV() == ControllerDPad.UP.getCode();
+	}
+
+	/**
+	 * Checks if the elevator down button is pressed.
+	 * @return true if the elevator down button is pressed, false otherwise
+	 */
+	public boolean isElevatorDownPressed() {
+		return driveController.getPOV() == ControllerDPad.DOWN.getCode();
+	}
+
+	/**
+	 * Checks if the L4 button is pressed.
+	 * @return true if the L4 button is pressed, false otherwise
+	 */
+	public boolean isL4ButtonPressed() {
+		return driveController.getYButtonPressed();
+	}
+
+	/**
+	 * Checks if the L3 button is pressed.
+	 * @return true if the L3 button is pressed, false otherwise
+	 */
+	public boolean isL3ButtonPressed() {
+		return driveController.getXButtonPressed();
+	}
+
+	/**
+	 * Checks if the L2 button is pressed.
+	 * @return true if the L2 button is pressed, false otherwise
+	 */
+	public boolean isL2ButtonPressed() {
+		return driveController.getBButtonPressed();
+	}
+
+	/**
+	 * Checks if the ground button is pressed.
+	 * @return true if the ground button is pressed, false otherwise
+	 */
+	public boolean isGroundButtonPressed() {
 		return driveController.getAButtonPressed();
 	}
 

@@ -8,6 +8,8 @@ import static frc.robot.Constants.VisionConstants.ROBOT_TO_REEF_CAM;
 import static frc.robot.Constants.VisionConstants.ROBOT_TO_STATION_CAM;
 import static frc.robot.Constants.VisionConstants.STATION_CAMERA_NAME;
 
+import java.lang.annotation.ElementType;
+
 import org.ironmaple.simulation.SimulatedArena;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -17,7 +19,8 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 // WPILib Imports
-import frc.robot.systems.Drivetrain;
+import frc.robot.systems.DrivetrainFSM;
+import frc.robot.systems.ElevatorFSM;
 import frc.robot.systems.Superstructure;
 
 // Systems
@@ -40,7 +43,8 @@ public class Robot extends LoggedRobot {
 	private TeleopInput input;
 
 	// Systems
-	private Drivetrain driveSystem;
+	private DrivetrainFSM driveSystem;
+	private ElevatorFSM elevatorSystem;
 	private Superstructure superstructure;
 	private Vision vision;
 
@@ -70,9 +74,8 @@ public class Robot extends LoggedRobot {
 		Logger.start(); // Start Logging!
 
 		input = new TeleopInput();
-
-		// Instantiate all systems here
-		driveSystem = new Drivetrain();
+		driveSystem = new DrivetrainFSM();
+		elevatorSystem = new ElevatorFSM();
 
 		if (isReal()) {
 			if (Features.USE_LIMELIGHT) {
@@ -123,7 +126,7 @@ public class Robot extends LoggedRobot {
 			}
 		}
 
-		superstructure = new Superstructure(driveSystem);
+		superstructure = new Superstructure(driveSystem, elevatorSystem);
 	}
 
 	@Override

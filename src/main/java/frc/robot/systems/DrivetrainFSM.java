@@ -56,7 +56,7 @@ import frc.robot.generated.TunerConstants;
 import frc.robot.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.simulation.SimSwerveDrivetrainConfig;
 
-public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Drivetrain.DriveWantedState> {
+public class DrivetrainFSM extends DualSetFSMSystem<DrivetrainFSM.DriveSystemState, DrivetrainFSM.DriveWantedState> {
 	/* ======================== Constants ======================== */
 	// FSM state definitions
 	public enum DriveSystemState {
@@ -137,7 +137,7 @@ public class Drivetrain extends DualSetFSMSystem<Drivetrain.DriveSystemState, Dr
 	 * one-time initialization or configuration of hardware required. Note
 	 * the constructor is called only once when the robot boots.
 	 */
-	public Drivetrain() {
+	public DrivetrainFSM() {
 		// Perform hardware init
 		drivetrain = TunerConstants.createDrivetrain();
 
