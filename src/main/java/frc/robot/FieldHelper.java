@@ -30,15 +30,15 @@ public final /* singleton */ class FieldHelper {
 
 	private static Map<ReefSide, AprilTag> reefAprilTags = new HashMap<>();
 
-	public static final int TAG_ID_REEF_SIDE_A = 18;
-	public static final int TAG_ID_REEF_SIDE_B = 17;
-	public static final int TAG_ID_REEF_SIDE_C = 22;
-	public static final int TAG_ID_REEF_SIDE_D = 21;
-	public static final int TAG_ID_REEF_SIDE_E = 20;
-	public static final int TAG_ID_REEF_SIDE_F = 19;
+	public static final int TAG_ID_REEF_SIDE_A = 9;
+	public static final int TAG_ID_REEF_SIDE_B = 10;
+	public static final int TAG_ID_REEF_SIDE_C = 9;
+	public static final int TAG_ID_REEF_SIDE_D = 10;
+	public static final int TAG_ID_REEF_SIDE_E = 9;
+	public static final int TAG_ID_REEF_SIDE_F = 10;
 
-	public static final int TAG_ID_TEST_REEF_LEFT = 3;
-	public static final int TAG_ID_TEST_REEF_RIGHT = 2;
+	public static final int TAG_ID_TEST_REEF_LEFT = 67;
+	public static final int TAG_ID_TEST_REEF_RIGHT = 4;
 
 	public enum StationSide {
 		LEFT, RIGHT
@@ -215,7 +215,7 @@ public final /* singleton */ class FieldHelper {
 				branchSide == BranchSide.LEFT
 						? AutoConstants.REEF_Y_LEFT_OFFSET.in(Meters)
 						: AutoConstants.REEF_Y_RIGHT_OFFSET.in(Meters), // Side to Side
-				Rotation2d.k180deg);
+				Rotation2d.kZero);
 
 		return atPose.transformBy(offsetTransform);
 	}

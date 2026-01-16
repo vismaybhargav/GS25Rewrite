@@ -9,6 +9,8 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -174,25 +176,19 @@ public class Constants {
 		public static final AprilTagFieldLayout TAG_LAYOUT;
 
 		static {
-			AprilTagFieldLayout layout;
+			AprilTagFieldLayout hi;
 			try {
-				layout = Features.USE_TEST_FIELD && !Robot.isSimulation() ? new AprilTagFieldLayout(Filesystem.
-					getDeployDirectory() + "/gs-test-field.json") : AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
-			} catch (IOException e) {
-				System.out.println("Could not find test field, defaulting to reefscape welded field.");
-				layout = AprilTagFieldLayout
-				.loadField(AprilTagFields.k2025ReefscapeWelded);
+				hi = new AprilTagFieldLayout(Filesystem.getDeployDirectory().toPath().resolve("2026-rebuilt-welded.json"));
+			}catch (Exception e) {
+				System.out.println("aaaa");
+				hi = AprilTagFieldLayout.loadField(AprilTagFields.k2022RapidReact);
 			}
-
-			var origin = new Pose3d(new Pose2d(-layout.getFieldLength() / 2, -layout.getFieldWidth() / 2, new Rotation2d()));
-			layout.setOrigin(origin);
-			TAG_LAYOUT = layout;
-
+			TAG_LAYOUT = hi;
 		}
 
 		public static final int TAG_ID_TEST_STATION = 1;
-		public static final int TAG_ID_TEST_REEF_LEFT = 2;
-		public static final int TAG_ID_TEST_REEF_RIGHT = 3;
+		public static final int TAG_ID_TEST_REEF_LEFT = 67;
+		public static final int TAG_ID_TEST_REEF_RIGHT = 4;
 
 		public static final String REEF_CAMERA_NAME = "Reef_Camera";
 		public static final String STATION_CAMERA_NAME = "Source_Camera";
@@ -222,5 +218,6 @@ public class Constants {
 		public static final double FIELD_BORDER_MARGIN = 0.5;
 		public static final double FIELD_LENGTH = 17.5483;
 		public static final double FIELD_WIDTH = 8.0519;
+			
 	}
 }
