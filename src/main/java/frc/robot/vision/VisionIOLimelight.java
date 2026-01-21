@@ -1,5 +1,7 @@
 package frc.robot.vision;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -8,7 +10,9 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import limelight.Limelight;
+import limelight.networktables.AngularVelocity3d;
 import limelight.networktables.LimelightPoseEstimator;
 import limelight.networktables.Orientation3d;
 import limelight.networktables.PoseEstimate;
@@ -34,6 +38,10 @@ public class VisionIOLimelight implements VisionIO {
 		mt1PoseEstimator = limelight.getPoseEstimator(false);
 		mt2PoseEstimator = limelight.getPoseEstimator(true);
 
+		limelight.getSettings().withImuMode(ImuMode.ExternalImu).save();
+
+		seedLimelight(Optional.of(Rotation2d.kZero));
+
 		limelight.getSettings().withImuMode(ImuMode.InternalImu).save();
 	}
 
@@ -41,13 +49,6 @@ public class VisionIOLimelight implements VisionIO {
 	public void updateInputs(VisionIOInputs inputs) {
 		var limelightResults = limelight.getLatestResults();
 		inputs.setConnected(limelightResults.isPresent());
-
-		// limelight
-		// 		.getSettings()
-		// 		.withRobotOrientation(orientationSupplier.get())
-		// 		.save();
-
-		// limelight.flush(); // reccommended by Limelight
 
 		var poseObservations = new LinkedList<PoseObservation>();
 
@@ -73,7 +74,7 @@ public class VisionIOLimelight implements VisionIO {
 		// 	}
 		// 	Arrays.stream(data).forEach(fid -> tagIds.add(fid.id));
 		// }
-
+		
 		if (data.length > 0) {
 			inputs.setLatestTargetObservation(new TargetObservation(Rotation2d.fromDegrees(data[0].txnc), Rotation2d.fromDegrees(data[0].tync)));
 		}
@@ -100,5 +101,17 @@ public class VisionIOLimelight implements VisionIO {
 		// 	}
 		// });
 		inputs.setTagIds(tagIds.stream().mapToInt(Integer::intValue).toArray());
+	}
+
+	public void seedLimelight(Optional<Rotation2d> optionalRotation) {
+		var orientation = new Orientation3d(new Rotation3d(
+			optionalRotation.orElse(new Rotation2d())),
+			new AngularVelocity3d(
+				RotationsPerSecond.of(0),
+				RotationsPerSecond.of(0),
+				RotationsPerSecond.of(0)
+			)
+		);
+		limelight.getSettings().withRobotOrientation(orientation).save();
 	}
 }

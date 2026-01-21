@@ -179,7 +179,7 @@ public class Constants {
 			AprilTagFieldLayout hi;
 			try {
 				hi = new AprilTagFieldLayout(Filesystem.getDeployDirectory().toPath().resolve("2026-rebuilt-welded.json"));
-			}catch (Exception e) {
+			} catch (Exception e) {
 				System.out.println("aaaa");
 				hi = AprilTagFieldLayout.loadField(AprilTagFields.k2022RapidReact);
 			}

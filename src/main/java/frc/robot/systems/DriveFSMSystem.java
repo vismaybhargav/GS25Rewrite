@@ -317,6 +317,13 @@ public class DriveFSMSystem {
 
 		if (input.isSeedButtonPressed()) {
 			drivetrain.seedFieldCentric();
+			// drivetrain.setControl(
+			// 	drive
+			// 			.withVelocityX(0)
+			// 			.withVelocityY(0)
+			// 			.withRotationalRate(0)
+			// );
+			// return;
 		}
 
 		double xSpeed = MathUtil.applyDeadband(

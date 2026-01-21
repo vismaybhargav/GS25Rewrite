@@ -99,7 +99,7 @@ public class TeleopInput {
 	 * @return true if the seed button is pressed, false otherwise
 	 */
 	public boolean isSeedButtonPressed() {
-		return driveController.getShareButton();
+		return driveController.getShareButtonPressed();
 	}
 
 	/* ======================== Private methods ======================== */
