@@ -146,19 +146,6 @@ public class Vision extends SubsystemBase {
 			// Loop over pose observations
 			for (var observation : inputs[cameraIndex].getPoseObservations()) {
 				Logger.recordOutput("Observation Tag Count", observation.tagCount());
-				Logger.recordOutput("Boolean Condition 1", observation.tagCount() == 1
-					&& observation.ambiguity() > MAX_AMBIGUITY
-					&& Math.abs(
-					rotatonSupplier
-						.get()
-						.minus(observation.pose().toPose2d().getRotation())
-						.getRadians()) > VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
-				Logger.recordOutput("Boolean Condition 2", Math.abs(observation.pose().getZ()) > MAX_Z_ERROR);
-				Logger.recordOutput("Boolean Condition 3", observation.pose().getX() < -FIELD_BORDER_MARGIN);
-				Logger.recordOutput("Boolean Condition 4", observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN);
-				Logger.recordOutput("Max X", TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN);
-				Logger.recordOutput("Boolean Condition 5", observation.pose().getY() < -FIELD_BORDER_MARGIN);
-				Logger.recordOutput("Boolean Condition 6", observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN);
 
 				// Check whether to reject pose
 				boolean rejectPose = observation.tagCount() == 0 // Must have at least one tag
@@ -176,45 +163,14 @@ public class Vision extends SubsystemBase {
 						|| observation.pose().getX() < -FIELD_BORDER_MARGIN
 						|| observation.pose().getX() > TAG_LAYOUT.getFieldLength() + FIELD_BORDER_MARGIN
 						|| observation.pose().getY() < -FIELD_BORDER_MARGIN
-						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN;
+						|| observation.pose().getY() > TAG_LAYOUT.getFieldWidth() +  FIELD_BORDER_MARGIN
+						|| observation.type() == PoseObservationType.MEGATAG_2;
 
 				if (Features.USE_LIMELIGHT) {
 					if (observation.type() == PoseObservationType.MEGATAG_1) {
 						mt1Poses.add(observation.pose());
-						Logger.recordOutput("MegaTag 1 Ambiguity", observation.ambiguity());
-						Logger.recordOutput("MegaTag 1 Max Ambiguity", MAX_AMBIGUITY);
-						Logger.recordOutput("MegaTag 1 Rotational Ambiguity", Math.abs(
-							rotatonSupplier
-								.get()
-								.minus(observation.pose().toPose2d().getRotation())
-								.getRadians()));
-						Logger.recordOutput("MegaTag 1 Max Rotational Ambiguity", VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
-						Logger.recordOutput("MegaTag 1 Z Error", observation.pose().getZ());
-						Logger.recordOutput("MegaTag 1 Max Z Error", MAX_Z_ERROR);
-						Logger.recordOutput("MegaTag 1 X Position", observation.pose().getX());
-						Logger.recordOutput("MegaTag 1 Y Position", observation.pose().getY());
 					} else if (observation.type() == PoseObservationType.MEGATAG_2) {
 						mt2Poses.add(observation.pose());
-						Logger.recordOutput("MegaTag 2 Ambiguity", observation.ambiguity());
-						Logger.recordOutput("MegaTag 2 Max Ambiguity", MAX_AMBIGUITY);
-						Logger.recordOutput("MegaTag 2 Rotational Ambiguity", Math.abs(
-							rotatonSupplier
-								.get()
-								.minus(observation.pose().toPose2d().getRotation())
-								.getRadians()));
-						Logger.recordOutput("MegaTag 2 Max Rotational Ambiguity", VisionConstants.MAX_POSE_ROT_OFFSET.in(Radians));
-						Logger.recordOutput("MegaTag 2 Z Error", observation.pose().getZ());
-						Logger.recordOutput("MegaTag 2 Max Z Error", MAX_Z_ERROR);
-						Logger.recordOutput("MegaTag 2 X Position", observation.pose().getX());
-						Logger.recordOutput("MegaTag 2 Y Position", observation.pose().getY());
-						for (int i = 0; i < poseIntArray.size(); i++) {
-							double xDist = poseArray.get(i).getX() - observation.pose().getX();
-							double yDist = poseArray.get(i).getY() - observation.pose().getY();
-							double zDist = poseArray.get(i).getZ() - observation.pose().getZ();
-							Logger.recordOutput("MegaTag 2 X Distance from Tag " + poseIntArray.get(i), xDist);
-							Logger.recordOutput("MegaTag 2 Y Distance from Tag " + poseIntArray.get(i), yDist);
-							Logger.recordOutput("MegaTag 2 Z Distaxnce from Tag " + poseIntArray.get(i), zDist);
-						}
 					}
 				}
 

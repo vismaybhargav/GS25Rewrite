@@ -1,5 +1,6 @@
 package frc.robot.vision;
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import java.util.Arrays;
@@ -25,6 +26,9 @@ public class VisionIOLimelight implements VisionIO {
 
 	private LimelightPoseEstimator mt1PoseEstimator;
 	private LimelightPoseEstimator mt2PoseEstimator;
+	private int seedCounter = 0;
+	private final int MAX_SEED_FRAMES = 20;
+	private boolean isLimelightSeeded = false;
 
 	/**
 	 * Creates a new VisionIOYALL implementation.
@@ -40,13 +44,28 @@ public class VisionIOLimelight implements VisionIO {
 
 		limelight.getSettings().withImuMode(ImuMode.ExternalImu).save();
 
-		seedLimelight(Optional.of(Rotation2d.kZero));
-
-		limelight.getSettings().withImuMode(ImuMode.InternalImu).save();
+		//seedLimelight(Optional.of(Rotation2d.kZero));
 	}
 
 	@Override
 	public void updateInputs(VisionIOInputs inputs) {
+		if (seedCounter < MAX_SEED_FRAMES) {
+			limelight.getSettings().withRobotOrientation(
+			new Orientation3d(
+				new Rotation3d(Rotation2d.kZero),
+				new AngularVelocity3d(
+					DegreesPerSecond.of(0),
+					DegreesPerSecond.of(0),
+					DegreesPerSecond.of(0)
+				)
+			)
+			).save();
+
+			if (seedCounter == MAX_SEED_FRAMES - 1) {
+				limelight.getSettings().withImuMode(ImuMode.InternalImu).save();
+			}
+			seedCounter++;
+		}
 		var limelightResults = limelight.getLatestResults();
 		inputs.setConnected(limelightResults.isPresent());
 
@@ -63,43 +82,28 @@ public class VisionIOLimelight implements VisionIO {
 							estimate.avgTagDist,
 							PoseObservationType.MEGATAG_2));
 				});
+
+		optEst = mt1PoseEstimator.getPoseEstimate();
+		optEst.ifPresent(
+				(PoseEstimate estimate) -> {
+					poseObservations.add(new PoseObservation(
+							estimate.timestampSeconds,
+							estimate.pose,
+							estimate.getAvgTagAmbiguity(),
+							estimate.rawFiducials.length,
+							estimate.avgTagDist,
+							PoseObservationType.MEGATAG_1));
+				});
 		inputs.setPoseObservations(poseObservations.toArray(new PoseObservation[0]));
 
 		Set<Integer> tagIds = new HashSet<>();
 		RawFiducial[] data = limelight.getData().getRawFiducials();
-		// if (optEst.isPresent()){
-		// 	RawFiducial[] data = optEst.get().rawFiducials;
-		// 	if(data.length > 0) {
-		// 		inputs.latestTargetObservation = new TargetObservation(Rotation2d.fromDegrees(data[0].txnc), Rotation2d.fromDegrees(data[0].tync));
-		// 	}
-		// 	Arrays.stream(data).forEach(fid -> tagIds.add(fid.id));
-		// }
-		
+
 		if (data.length > 0) {
 			inputs.setLatestTargetObservation(new TargetObservation(Rotation2d.fromDegrees(data[0].txnc), Rotation2d.fromDegrees(data[0].tync)));
 		}
 		Arrays.stream(data).forEach(fid -> tagIds.add(fid.id));
 
-		// limelightResults.ifPresent(results -> {
-		// 	var targets = results.targets_Fiducials;
-		// 	System.out.println("Targets " + targets);
-		// 	Logger.recordOutput("NumberOfTargets", targets.length);
-
-
-		// 	if (targets.length == 0) {
-		// 		return;
-		// 	}
-		// 	var firstTarget = targets[0];
-
-		// 	inputs.latestTargetObservation = new TargetObservation(
-		// 			Rotation2d.fromDegrees(firstTarget.tx),
-		// 			Rotation2d.fromDegrees(firstTarget.ty));
-
-		// 	for (var tag : targets) {
-		// 		Logger.recordOutput("tag"+ tag.fiducialID, (int)tag.fiducialID);
-		// 		tagIds.add((int) tag.fiducialID);
-		// 	}
-		// });
 		inputs.setTagIds(tagIds.stream().mapToInt(Integer::intValue).toArray());
 	}
 
